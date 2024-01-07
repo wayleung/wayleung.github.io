@@ -17,9 +17,9 @@
   <meta name="keywords" content="">
   
     <meta name="description" content="Codis与RedisCluster的原理详解最近入职新公司，公司使用的是Codis去同步Redis节点间的数据，所以最近去了解一下Codis的相关知识，找到一篇不错的文章，故转载下来 背景介绍#我们先来看一下为什么要做集群，如果我们要部署一个单节点Redis，很明显会遇到单点故障的问题。  首先能想到解决单点故障的方法，就是做主从，但是当有海量存储需求时，单一的主从结构就会出问题，说问题之前要先">
-<meta property="og:type" content="article">
+<meta property="og:type" content="website">
 <meta property="og:title" content="Codis与RedisCluster的原理详解">
-<meta property="og:url" content="http://example.com/2021/03/13/Codis%E4%B8%8ERedisCluster%E7%9A%84%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:url" content="http://example.com/deletepost/Codis%E4%B8%8ERedisCluster%E7%9A%84%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3.html">
 <meta property="og:site_name" content="小梁的个人博客">
 <meta property="og:description" content="Codis与RedisCluster的原理详解最近入职新公司，公司使用的是Codis去同步Redis节点间的数据，所以最近去了解一下Codis的相关知识，找到一篇不错的文章，故转载下来 背景介绍#我们先来看一下为什么要做集群，如果我们要部署一个单节点Redis，很明显会遇到单点故障的问题。  首先能想到解决单点故障的方法，就是做主从，但是当有海量存储需求时，单一的主从结构就会出问题，说问题之前要先">
 <meta property="og:locale" content="zh_CN">
@@ -62,12 +62,6 @@
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
 
-
-  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
-
-  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
-
-  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
 
 
 
@@ -147,7 +141,7 @@
   <header>
     
 
-<div class="header-inner" style="height: 70vh;">
+<div class="header-inner" style="height: 60vh;">
   <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
@@ -258,46 +252,6 @@
         </div>
 
         
-          
-  <div class="mt-3">
-    
-    
-      <span class="post-meta">
-        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2021-03-13 14:58" pubdate>
-          2021年3月13日 下午
-        </time>
-      </span>
-    
-  </div>
-
-  <div class="mt-1">
-    
-      <span class="post-meta mr-2">
-        <i class="iconfont icon-chart"></i>
-        
-          2.5k 字
-        
-      </span>
-    
-
-    
-      <span class="post-meta mr-2">
-        <i class="iconfont icon-clock-fill"></i>
-        
-        
-        
-          22 分钟
-        
-      </span>
-    
-
-    
-    
-  </div>
-
-
-        
       </div>
 
       
@@ -311,25 +265,17 @@
 
   <main>
     
-      
-
-<div class="container-fluid nopadding-x">
-  <div class="row nomargin-x">
-    <div class="side-col d-none d-lg-block col-lg-2">
-      
-
-    </div>
-
-    <div class="col-lg-8 nopadding-x-md">
-      <div class="container nopadding-x-md" id="board-ctn">
-        <div id="board">
-          <article class="post-content mx-auto">
-            <h1 id="seo-header">Codis与RedisCluster的原理详解</h1>
-            
-            
-              <div class="markdown-body">
+      <div class="container nopadding-x-md">
+        <div id="board"
+          >
+          
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-md-10 m-auto">
                 
-                <h2 id="Codis与RedisCluster的原理详解"><a href="#Codis与RedisCluster的原理详解" class="headerlink" title="Codis与RedisCluster的原理详解"></a><a target="_blank" rel="noopener" href="https://www.cnblogs.com/pingyeaa/p/11294773.html">Codis与RedisCluster的原理详解</a></h2><p>最近入职新公司，公司使用的是Codis去同步Redis节点间的数据，所以最近去了解一下Codis的相关知识，找到一篇不错的文章，故转载下来</p>
+
+<article class="page-content">
+  <h2 id="Codis与RedisCluster的原理详解"><a href="#Codis与RedisCluster的原理详解" class="headerlink" title="Codis与RedisCluster的原理详解"></a><a target="_blank" rel="noopener" href="https://www.cnblogs.com/pingyeaa/p/11294773.html">Codis与RedisCluster的原理详解</a></h2><p>最近入职新公司，公司使用的是Codis去同步Redis节点间的数据，所以最近去了解一下Codis的相关知识，找到一篇不错的文章，故转载下来</p>
 <h3 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍#"></a>背景介绍<a target="_blank" rel="noopener" href="https://www.cnblogs.com/pingyeaa/p/11294773.html#381988702">#</a></h3><p>我们先来看一下为什么要做集群，如果我们要部署一个单节点Redis，很明显会遇到单点故障的问题。</p>
 <p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141103915-106719622.png"><img src="https://img-blog.csdnimg.cn/img_convert/b6db2d7c186516e1ee572d2f553df61b.png" srcset="/img/loading.gif" lazyload></a></p>
 <p>首先能想到解决单点故障的方法，就是做主从，但是当有海量存储需求时，单一的主从结构就会出问题，说问题之前要先了解一下主从之间是如何复制的。</p>
@@ -389,201 +335,18 @@
 <p>这是RedisCluster大概的原理，下面看一下Codis跟RedisCluster简要的区别。</p>
 <p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142957436-474723415.png"><img src="https://img-blog.csdnimg.cn/img_convert/b6a006f88dcef7f2cf1b07f9405f58cd.png" srcset="/img/loading.gif" lazyload></a></p>
 
-                
+
+  
+
+</article>
+
+
+
               </div>
-            
-            <hr/>
-            <div>
-              <div class="post-metas my-3">
-  
-    <div class="post-meta mr-3 d-flex align-items-center">
-      <i class="iconfont icon-category"></i>
-      
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-    </div>
-  
-  
-    <div class="post-meta">
-      <i class="iconfont icon-tags"></i>
-      
-        <a href="/tags/%E8%BD%AC%E8%BD%BD/" class="print-no-link">#转载</a>
-      
-    </div>
-  
-</div>
-
-
-              
-  
-
-  <div class="license-box my-3">
-    <div class="license-title">
-      <div>Codis与RedisCluster的原理详解</div>
-      <div>http://example.com/2021/03/13/Codis与RedisCluster的原理详解/</div>
-    </div>
-    <div class="license-meta">
-      
-        <div class="license-meta-item">
-          <div>作者</div>
-          <div>Way Leung</div>
-        </div>
-      
-      
-        <div class="license-meta-item license-meta-date">
-          <div>发布于</div>
-          <div>2021年3月13日</div>
-        </div>
-      
-      
-      
-        <div class="license-meta-item">
-          <div>许可协议</div>
-          <div>
-            
-              
-              
-                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
-                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
-                    <i class="iconfont icon-by"></i>
-                  </span>
-                </a>
-              
-            
+            </div>
           </div>
         </div>
-      
-    </div>
-    <div class="license-icon iconfont"></div>
-  </div>
-
-
-
-              
-                <div class="post-prevnext my-3">
-                  <article class="post-prev col-6">
-                    
-                    
-                      <a href="/2021/05/12/@Async%20%E5%AF%BC%E8%87%B4%E8%AF%A5Bean%E5%9C%A8%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E6%97%B6%E5%90%AF%E5%8A%A8%E6%8A%A5%E9%94%99/" title="Async注解 导致该Bean在循环依赖时启动报错">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Async注解 导致该Bean在循环依赖时启动报错</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2021/01/19/Spring%20%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%92%8C%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/" title="Spring 循环依赖和三级缓存">
-                        <span class="hidden-mobile">Spring 循环依赖和三级缓存</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
-              
-            </div>
-
-            
-  
-  
-    <article id="comments" lazyload>
-      
-  <div id="valine"></div>
-  <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
-        var options = Object.assign(
-          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
-          {
-            el: "#valine",
-            path: window.location.pathname
-          }
-        )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
-          Fluid.plugins.imageCaption(imgSelector);
-          Fluid.plugins.fancyBox(imgSelector);
-        })
-      });
-    });
-  </script>
-  <noscript>Please enable JavaScript to view the comments</noscript>
-
-
-    </article>
-  
-
-
-          </article>
-        </div>
       </div>
-    </div>
-
-    <div class="side-col d-none d-lg-block col-lg-2">
-      
-  <aside class="sidebar" style="margin-left: -1rem">
-    <div id="toc">
-  <p class="toc-header">
-    <i class="iconfont icon-list"></i>
-    <span>目录</span>
-  </p>
-  <div class="toc-body" id="toc-body"></div>
-</div>
-
-
-
-  </aside>
-
-
-    </div>
-  </div>
-</div>
-
-
-
-
-
-  
-
-
-
-  
-
-
-
-  
-
-
-
-  
-
-
-
-  
-
-
-
-
-
-
-
     
 
     
@@ -677,99 +440,6 @@
 
 
 
-
-  
-<script>
-  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
-    var toc = jQuery('#toc');
-    if (toc.length === 0 || !window.tocbot) { return; }
-    var boardCtn = jQuery('#board-ctn');
-    var boardTop = boardCtn.offset().top;
-
-    window.tocbot.init(Object.assign({
-      tocSelector     : '#toc-body',
-      contentSelector : '.markdown-body',
-      linkClass       : 'tocbot-link',
-      activeLinkClass : 'tocbot-active-link',
-      listClass       : 'tocbot-list',
-      isCollapsedClass: 'tocbot-is-collapsed',
-      collapsibleClass: 'tocbot-is-collapsible',
-      scrollSmooth    : true,
-      includeTitleTags: true,
-      headingsOffset  : -boardTop,
-    }, CONFIG.toc));
-    if (toc.find('.toc-list-item').length > 0) {
-      toc.css('visibility', 'visible');
-    }
-
-    Fluid.events.registerRefreshCallback(function() {
-      if ('tocbot' in window) {
-        tocbot.refresh();
-        var toc = jQuery('#toc');
-        if (toc.length === 0 || !tocbot) {
-          return;
-        }
-        if (toc.find('.toc-list-item').length > 0) {
-          toc.css('visibility', 'visible');
-        }
-      }
-    });
-  });
-</script>
-
-
-  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
-
-  <script>Fluid.plugins.codeWidget();</script>
-
-
-  
-<script>
-  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
-    window.anchors.options = {
-      placement: CONFIG.anchorjs.placement,
-      visible  : CONFIG.anchorjs.visible
-    };
-    if (CONFIG.anchorjs.icon) {
-      window.anchors.options.icon = CONFIG.anchorjs.icon;
-    }
-    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
-    var res = [];
-    for (var item of el) {
-      res.push('.markdown-body > ' + item.trim());
-    }
-    if (CONFIG.anchorjs.placement === 'left') {
-      window.anchors.options.class = 'anchorjs-link-left';
-    }
-    window.anchors.add(res.join(', '));
-
-    Fluid.events.registerRefreshCallback(function() {
-      if ('anchors' in window) {
-        anchors.removeAll();
-        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
-        var res = [];
-        for (var item of el) {
-          res.push('.markdown-body > ' + item.trim());
-        }
-        if (CONFIG.anchorjs.placement === 'left') {
-          anchors.options.class = 'anchorjs-link-left';
-        }
-        anchors.add(res.join(', '));
-      }
-    });
-  });
-</script>
-
-
-  
-<script>
-  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
-    Fluid.plugins.fancyBox();
-  });
-</script>
-
-
-  <script>Fluid.plugins.imageCaption();</script>
 
   <script defer src="/js/leancloud.js" ></script>
 
