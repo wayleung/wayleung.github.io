@@ -1,0 +1,849 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Way Leung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="我们知道，kafka中每个topic被划分为多个partition，每个partition又有多个副本，那么这些分区副本是怎么均匀的分布在整个kafka集群的broker节点上的？partition副本的leader是通过什么算法选举出来的？partition副本的follower是怎么复制备份leader的数据的？本文我们就来说一说和 kafka 高可用相关的一些策略。01 名词解释 要想说明白">
+<meta property="og:type" content="article">
+<meta property="og:title" content="秒懂 kafka HA（高可用）">
+<meta property="og:url" content="http://example.com/2021/01/05/%E7%A7%92%E6%87%82%20kafka%20HA%EF%BC%88%E9%AB%98%E5%8F%AF%E7%94%A8%EF%BC%89/index.html">
+<meta property="og:site_name" content="小梁的个人博客">
+<meta property="og:description" content="我们知道，kafka中每个topic被划分为多个partition，每个partition又有多个副本，那么这些分区副本是怎么均匀的分布在整个kafka集群的broker节点上的？partition副本的leader是通过什么算法选举出来的？partition副本的follower是怎么复制备份leader的数据的？本文我们就来说一说和 kafka 高可用相关的一些策略。01 名词解释 要想说明白">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/a0b27955baa4da021745a5d8120dba3c.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/420b84aa4e74c2ec169520070903c101.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/4405f61410cff44764a91cb77ec2f4d1.png">
+<meta property="article:published_time" content="2021-01-05T06:23:07.000Z">
+<meta property="article:modified_time" content="2024-01-07T14:12:33.269Z">
+<meta property="article:author" content="Way Leung">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/img_convert/a0b27955baa4da021745a5d8120dba3c.png">
+  
+  
+  
+  <title>秒懂 kafka HA（高可用） - 小梁的个人博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","app_key":"OyBjbqUomyG2Y1ArgpK2iUlc","server_url":"https://bdcpj8k5.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="小梁的个人博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>wayleung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="秒懂 kafka HA（高可用）"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-01-05 14:23" pubdate>
+          2021年1月5日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          34 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">秒懂 kafka HA（高可用）</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h3 id="我们知道，kafka中每个topic被划分为多个partition，每个partition又有多个副本，那么这些分区副本是怎么均匀的分布在整个kafka集群的broker节点上的？partition副本的leader是通过什么算法选举出来的？partition副本的follower是怎么复制备份leader的数据的？本文我们就来说一说和-kafka-高可用相关的一些策略。"><a href="#我们知道，kafka中每个topic被划分为多个partition，每个partition又有多个副本，那么这些分区副本是怎么均匀的分布在整个kafka集群的broker节点上的？partition副本的leader是通过什么算法选举出来的？partition副本的follower是怎么复制备份leader的数据的？本文我们就来说一说和-kafka-高可用相关的一些策略。" class="headerlink" title="我们知道，kafka中每个topic被划分为多个partition，每个partition又有多个副本，那么这些分区副本是怎么均匀的分布在整个kafka集群的broker节点上的？partition副本的leader是通过什么算法选举出来的？partition副本的follower是怎么复制备份leader的数据的？本文我们就来说一说和 kafka 高可用相关的一些策略。"></a>我们知道，kafka中每个topic被划分为多个partition，每个partition又有多个副本，那么这些分区副本是怎么均匀的分布在整个kafka集群的broker节点上的？partition副本的leader是通过什么算法选举出来的？partition副本的follower是怎么复制备份leader的数据的？本文我们就来说一说和 kafka 高可用相关的一些策略。</h3><p>01</p>
+<p>名词解释</p>
+<p>要想说明白kafka的HA机制，我们必须先搞明白几个缩写名词，</p>
+<p><strong>1、AR、ISR、OSR</strong></p>
+<p>AR：Assigned Replicas，某分区的所有副本（这里所说的副本包括leader和follower）统称为 AR。</p>
+<p>ISR：In Sync Replicas，所有与leader副本保持”一定程度同步”的副本（包括leader副本在内）组成 ISR 。生产者发送消息时，只有leader与客户端发生交互，follower只是同步备份leader的数据，以保障高可用，所以生产者的消息会先发送到leader，然后follower才能从leader中拉取消息进行同步，同步期间，follower的数据相对leader而言会有一定程度的滞后，前面所说的”一定程度同步”就是指可忍受的滞后范围，这个范围可以通过server.properties中的参数进行配置。</p>
+<p>OSR ：Out-of-Sync Replied，在上面的描述中，相对leader滞后过多的follower将组成OSR 。</p>
+<p>由此可见，AR &#x3D; ISR + OSR，理想情况下，所有的follower副本都应该与leader 保持一定程度的同步，即AR&#x3D;ISR，OSR集合为空</p>
+<p><strong>2、ISR 的伸缩性</strong></p>
+<p>leader负责跟踪维护 ISR 集合中所有follower副本的滞后状态，当follower副本”落后太多” 或 “follower超过一定时间没有向leader发送同步请求”时，leader副本会把它从 ISR 集合中剔除。如果 OSR 集合中有follower副本”追上”了leader副本，那么leader副本会把它从 OSR 集合转移至 ISR 集合。</p>
+<p>上面描述的”落后太多”是指follower复制的消息落后于leader的条数超过预定值，这个预定值可在server.properties中通过replica.lag.max.messages配置，其默认值是4000。”超过一定时间没有向leader发送同步请求”，这个”一定时间”可以在server.properties中通过replica.lag.time.max.ms来配置，其默认值是10000，默认情况下，当leader发生故障时，只有 ISR 集合中的follower副本才有资格被选举为新的leader，而在 OSR 集合中的副本则没有任何机会（不过这个可以通过配置来改变）。</p>
+<p><strong>3、HW</strong></p>
+<p>HW （High Watermark）俗称高水位，它标识了一个特定的消息偏移量（offset），消费者只能消费HW之前的消息。</p>
+<p>下图表示一个日志文件，这个日志文件中有9条消息，第一条消息的offset为0，最后一条消息的offset为8，虚线表示的offset为9的消息，代表下一条待写入的消息。日志文件的 HW 为6，表示消费者只能拉取offset在 0 到 5 之间的消息，offset为6的消息对消费者而言是不可见的。</p>
+<p><img src="https://img-blog.csdnimg.cn/img_convert/a0b27955baa4da021745a5d8120dba3c.png" srcset="/img/loading.gif" lazyload alt="Image"></p>
+<p><strong>4、LEO</strong></p>
+<p>LEO （Log End Offset），标识当前日志文件中下一条待写入的消息的offset。上图中offset为9的位置即为当前日志文件的 LEO，分区 ISR 集合中的每个副本都会维护自身的 LEO ，而 ISR 集合中最小的 LEO 即为分区的 HW（你品，你细品…），对消费者而言只能消费 HW 之前的消息。</p>
+<p><strong>5、 ISR 集合和 HW、LEO的关系</strong></p>
+<p>producer在发布消息到partition时，只会与该partition的leader发生交互将消息发送给leader，leader会将该消息写入其本地log，每个follower都从leader上pull数据做同步备份，follower在pull到该消息并写入其log后，会向leader发送ack，一旦leader收到了ISR中的所有follower的ack（只关注ISR中的所有follower，不考虑OSR，一定程度上提升了吞吐），该消息就被认为已经commit了，leader将增加HW，然后向producer发送ack。</p>
+<p>也就是说，在ISR中所有的follower还没有完成数据备份之前，leader不会增加HW，也就是这条消息暂时还不能被消费者消费，只有当ISR中所有的follower都备份完成后，leader才会将HW后移。</p>
+<p>ISR集合中LEO最小的副本，即同步数据同步的最慢的一个，这个最慢副本的LEO即leader的HW，消费者只能消费HW之前的消息。</p>
+<p>02</p>
+<p>kafka HA</p>
+<p>Tips：我们说的副本包括leader和follower，都叫副本，不要认为叫副本说的就是follower。</p>
+<p>kafka在0.8以前的版本中是没有分区副本的概念的，一旦某一个broker宕机，这个broker上的所有分区都将不可用。在0.8版本以后，引入了分区副本的概念，同一个partition可以有多个副本，在多个副本中会选出一个做leader，其余的作为follower，只有leader对外提供读写服务，follower只负责从leader上同步拉取数据，已保障高可用。</p>
+<p>1、partition副本的分配策略</p>
+<p>每个topic有多个partition，每个partition有多个副本，这些partition副本分布在不同的broker上，以保障高可用，那么这些partition副本是怎么均匀的分布到集群中的每个broker上的呢？</p>
+<p>※ kafka分配partition副本的算法如下，</p>
+<p>① 将所有的broker（假设总共n个broker）和 待分配的partition排序；</p>
+<p>② 将第i个partition分配到第（i mod n）个broker上；</p>
+<p>③ 第i个partition的第j个副本分配到第（(i+j) mod n）个broker上；</p>
+<p>2、kafka的消息传递备份策略</p>
+<p>生产者将消息发送给分区的leader，leader会将该消息写入其本地log，然后每个follower都会从leader pull数据，follower pull到该消息并将其写入log后，会向leader发送ack，当leader收到了ISR集合中所有follower的ack后，就认为这条消息已经commit了，leader将增加HW并且向生产者返回ack。在整个流程中，follower也可以批量的从leader复制数据，以提升复制性能。</p>
+<p>producer在发送消息的时候，可指定参数acks，表示”在生产者认为发送请求完成之前，有多少分区副本必须接收到数据”，有三个可选值，0、1、all(或-1)，默认为1，</p>
+<ul>
+<li><p>acks&#x3D;0，表示producer只管发，只要发出去就认为发发送请求完成了，不管leader有没有收到，更不管follower有没有备份完成。</p>
+</li>
+<li><p>acks&#x3D;1，表示只要leader收到消息，并将其写入自己log后，就会返回给producer ack，不考虑follower有没有备份完成。</p>
+</li>
+<li><p>acks&#x3D;all(或-1)，表示不仅要leader收到消息写入本地log，还要等所有ISR集合中的follower都备份完成后，producer才认为发送成功。</p>
+</li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/img_convert/420b84aa4e74c2ec169520070903c101.png" srcset="/img/loading.gif" lazyload alt="Image">实际上，为了提高性能，follower在pull到消息将其保存到内存中而尚未写入磁盘时，就会向leader发送ack，所以也就不能完全保证异常发生后该条消息一定能被Consumer消费。</p>
+<p>3、kafka中的Leader选举</p>
+<p>面试官在考查你kafka知识的时候如果问你：kafka中的选举是怎么回事？而不说具体哪种选举，那这个面试官可能对kafka也是一知半解，这个时候就是”弄死”他的时候了，当然如果你没有一定的知识储备，那么就是你被”弄死”的时候。</p>
+<p>因为kafka中涉及到选举的地方有多处，最常提及的也有：①cotroller选举 、 ②分区leader选举 和 ③consumer group leader的选举。我们在前面说过同一个partition有多个副本，其中一个副本作为leader，其余的作为follower。这里我们再说一个角色：controller！kafka集群中多个broker，有一个会被选举为controller，注意区分两者，一个是broker的leader，我们称为controller，一个是分区副本的leader，我们称为leader。</p>
+<p>① controller的选举【broker的leader】</p>
+<p>controller的选举是通过broker在zookeeper的”&#x2F;controller”节点下创建临时节点来实现的，并在该节点中写入当前broker的信息 {“version”:1,”brokerid”:1,”timestamp”:”1512018424988”} ，利用zookeeper的强一致性特性，一个节点只能被一个客户端创建成功，创建成功的broker即为controller，即”先到先得”。 </p>
+<p>当controller宕机或者和zookeeper失去连接时，zookeeper检测不到心跳，zookeeper上的临时节点会被删除，而其它broker会监听临时节点的变化，当节点被删除时，其它broker会收到通知，重新发起controller选举。</p>
+<p>② leader的选举【分区副本的leader】</p>
+<p>分区leader的选举由 controller 负责管理和实施，当leader发生故障时，controller会将leader的改变直接通过RPC的方式通知需要为此作出响应的broker，需要为此作出响应的broker即该分区的ISR集合中follower所在的broker，kafka在zookeeper中动态维护了一个ISR，只有ISR里的follower才有被选为Leader的可能。</p>
+<p>具体过程是这样的：按照AR集合中副本的顺序 查找到 第一个 存活的、并且属于ISR集合的 副本作为新的leader。一个分区的AR集合在创建分区副本的时候就被指定，只要不发生重分配的情况，AR集合内部副本的顺序是保持不变的，而分区的ISR集合上面说过因为同步滞后等原因可能会改变，所以注意这里是根据AR的顺序而不是ISR的顺序找。</p>
+<p>※ 对于上面描述的过程我们假设一种极端的情况，如果partition的所有副本都不可用时，怎么办？这种情况下kafka提供了两种可行的方案：</p>
+<p>1、选择 ISR中 第一个活过来的副本作为Leader；</p>
+<p>2、选择第一个活过来的副本（不一定是ISR中的）作为Leader；</p>
+<p>这就需要在可用性和数据一致性当中做出选择，如果一定要等待ISR中的副本活过来，那不可用的时间可能会相对较长。选择第一个活过来的副本作为Leader，如果这个副本不在ISR中，那数据的一致性则难以保证。kafka支持用户通过配置选择，以根据业务场景在可用性和数据一致性之间做出权衡。</p>
+<p>③消费组leader的选举</p>
+<p>组协调器会为消费组（consumer group）内的所有消费者选举出一个leader，这个选举的算法也很简单，第一个加入consumer group的consumer即为leader，如果某一时刻leader消费者退出了消费组，那么会重新 随机 选举一个新的leader。</p>
+<p>03</p>
+<p>kafka架构中zookeeper的结构</p>
+<p>1、查看方式</p>
+<p>我们知道，kafka是基于zookeeper协调管理的，那么zookeeper中究竟存储了哪些信息？另外在后面分析 broker宕机 和 controller宕机 时，我们也需要先了解zookeeper的目录结构，所以我们先学习一下怎么查看zookeeper的目录结构？</p>
+<p>① 首先启动zookeeper客户端连接zk服务</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs auto"># cd /usr/local/zookeeper-cluster/zk1/bin# ./zkCli.sh<br></code></pre></td></tr></table></figure>
+
+<p>② 查看zk根节点的子目录</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs auto">[zk: localhost:2181(CONNECTED) 0] ls /[cluster, controller_epoch, controller, brokers, zookeeper, admin, isr_change_notification, consumers, log_dir_event_notification, latest_producer_id_block, config]<br></code></pre></td></tr></table></figure>
+
+<p>③ 可以看到zk根节点下有很多子目录，以brokers为例，查看brokers的层级结构</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs auto">[zk: localhost:2181(CONNECTED) 1] ls /brokers[ids, topics, seqid][zk: localhost:2181(CONNECTED) 2] ls /brokers/ids[0][zk: localhost:2181(CONNECTED) 3] get /brokers/ids/0&#123;&quot;listener_security_protocol_map&quot;:&#123;&quot;PLAINTEXT&quot;:&quot;PLAINTEXT&quot;&#125;,&quot;endpoints&quot;:[&quot;PLAINTEXT://172.17.80.219:9092&quot;],&quot;jmx_port&quot;:-1,&quot;host&quot;:&quot;172.17.80.219&quot;,&quot;timestamp&quot;:&quot;1584267365984&quot;,&quot;port&quot;:9092,&quot;version&quot;:4&#125;cZxid = 0x300000535ctime = Sun Mar 15 18:16:06 CST 2020mZxid = 0x300000535mtime = Sun Mar 15 18:16:06 CST 2020pZxid = 0x300000535cversion = 0dataVersion = 1aclVersion = 0ephemeralOwner = 0x20191d7053f0009dataLength = 196numChildren = 0[zk: localhost:2181(CONNECTED) 4] [zk: localhost:2181(CONNECTED) 4][zk: localhost:2181(CONNECTED) 4][zk: localhost:2181(CONNECTED) 4] ls /brokers/topics[__consumer_offsets, first][zk: localhost:2181(CONNECTED) 5] ls /brokers/topics/first[partitions][zk: localhost:2181(CONNECTED) 6] ls /brokers/topics/first/partitions[0, 1][zk: localhost:2181(CONNECTED) 7] ls /brokers/topics/first/partitions/0[state][zk: localhost:2181(CONNECTED) 8] get /brokers/topics/first/partitions/0/state&#123;&quot;controller_epoch&quot;:21,&quot;leader&quot;:0,&quot;version&quot;:1,&quot;leader_epoch&quot;:8,&quot;isr&quot;:[0]&#125;cZxid = 0x3000003e9ctime = Sun Mar 08 16:24:37 CST 2020mZxid = 0x3000005cbmtime = Sun Mar 15 18:54:09 CST 2020pZxid = 0x3000003e9cversion = 0dataVersion = 10aclVersion = 0ephemeralOwner = 0x0dataLength = 73numChildren = 0[zk: localhost:2181(CONNECTED) 9]<br></code></pre></td></tr></table></figure>
+
+<p>可以看到，brokers下包括[ids, topics, seqid]，ids里面存储了存活的broker的信息，topics里面存储了kafka集群中topic的信息。同样的方法，可以查看其余节点的结构，这里不再演示。</p>
+<p>2、节点信息（这里只列出和HA相关的部分节点）</p>
+<p>① controller</p>
+<p>controller节点下存放的是kafka集群中controller的信息（controller即kafka集群中所有broker的leader）。</p>
+<p>② controller_epoch</p>
+<p>controller_epoch用于记录controller发生变更的次数（controller宕机后会重新选举controller，这时候controller_epoch的值会+1），即记录当前的控制器是第几代控制器，用于防止broker脑裂。</p>
+<p>③ brokes</p>
+<p>brokers下的ids存储了存活的broker信息，topics存储了kafka集群中topic的信息，其中有一个特殊的topic：_consumer_offsets，新版本的kafka将消费者的offset就存储在__consumer_offsets下。</p>
+<p>04</p>
+<p>broker failover</p>
+<p>我们了解了kafka集群中zookpeeper的结构，本文的主题是kafka的高可用分析，所以我们还是结合zookpper的结构，来分析一下，当kafka集群中的一个broker节点宕机时（非controller节点），会发生什么？</p>
+<p>在讲之前，我们再来回顾一下brokers的结构，</p>
+<p><img src="https://img-blog.csdnimg.cn/img_convert/4405f61410cff44764a91cb77ec2f4d1.png" srcset="/img/loading.gif" lazyload alt="Image"></p>
+<p>※ 当非controller的broker宕机时，会执行如下操作，</p>
+<p>1、controller会在zookeeper的 “ &#x2F;brokers&#x2F;ids&#x2F;“ 节点注册一个watcher（监视器），当有broker宕机时，zookeeper会触发监视器（fire watch）通知controller。</p>
+<p>2、controller 从 “&#x2F;brokers&#x2F;ids” 节点读取到所有可用的broker。</p>
+<p>3、controller会声明一个set_p集合，该集合包含了宕机broker上所有的partition。</p>
+<p>4、针对set_p中的每一个partition，</p>
+<p>① 从 “&#x2F;state”节点 读取该partition当前的ISR；</p>
+<p>② 决定该partition的新leader：如果该分区的 ISR中有存活的副本，则选择其中一个作为新leader；如果该partition的ISR副本全部挂了，则选择该partition的 AR集合 中任一幸存的副本作为leader；如果该partition的所有副本都挂，则将分区的leader设为-1；</p>
+<p>③ 将新 leader、ISR、controller_epoch 和 leader_epoch 等信息写入 state 节点；</p>
+<p>5、通过RPC向set_p相关的broker发送LeaderAndISR Request命令。</p>
+<p>05</p>
+<p>controller failover</p>
+<p>当 controller 宕机时会触发 controller failover。每个 broker 都会在 zookeeper 的 “&#x2F;controller” 节点注册 watcher（监听器），当 controller 宕机时 zookeeper 中的临时节点消失，所有存活的 broker 收到 fire 的通知，每个 broker 都尝试创建新的临时节点，只有一个会创建成功并当选为 controller。</p>
+<p>当新的 controller 当选时，会回调KafkaController的onControllerFailover()方法，在这个方法中完成controller的初始化，controller 在初始化时，首先会利用 ZK 的 watch 机制注册很多不同类型的监听器，主要有以下几种：</p>
+<ul>
+<li><p>监听 &#x2F;admin&#x2F;reassign_partitions 节点，用于分区副本迁移的监听；</p>
+</li>
+<li><p>监听 &#x2F;isr_change_notification 节点，用于 Partition Isr 变动的监听；</p>
+</li>
+<li><p>监听 &#x2F;admin&#x2F;preferred_replica_election 节点，用于 Partition 最优 leader 选举的监听；</p>
+</li>
+<li><p>监听 &#x2F;brokers&#x2F;topics 节点，用于 topic 新建的监听；</p>
+</li>
+<li><p>监听 &#x2F;brokers&#x2F;topics&#x2F;TOPIC_NAME 节点，用于 Topic Partition 扩容的监听；</p>
+</li>
+<li><p>监听 &#x2F;admin&#x2F;delete_topics 节点，用于 topic 删除的监听；</p>
+</li>
+<li><p>监听 &#x2F;brokers&#x2F;ids 节点，用于 Broker 上下线的监听；</p>
+</li>
+</ul>
+<p>除了注册多种监听器外，controller初始化时还做以下操作，</p>
+<ul>
+<li><p>initializeControllerContext()</p>
+<p>初始化controller上下文，设置当前所有broker、topic、partition的leader、ISR等；</p>
+</li>
+<li><p>replicaStateMachine.startup()</p>
+</li>
+<li><p>partitionStateMachine.startup()</p>
+<p>启动状态机；</p>
+</li>
+<li><p>brokerState.newState(RunningAsController)</p>
+<p>将 brokerState 状态设置为 RunningAsController；</p>
+</li>
+<li><p>sendUpdateMetadataRequest(controllerContext.liveOrShuttingDownBrokerIds.toSeq)</p>
+<p>把partition leadership信息发到所有brokers；</p>
+</li>
+<li><p>autoRebalanceScheduler.startup()</p>
+<p>如果打开了autoLeaderRebalance，则启动”partition-rebalance-thread”线程；</p>
+</li>
+<li><p>deleteTopicManager.start()</p>
+<p>如果delete.topic.enable&#x3D;true，且 &#x2F;admin&#x2F;delete_topics 节点下有值，则删除相应的topic；</p>
+</li>
+</ul>
+<p>最后，把onControllerFailover()方法的源码贴一下，上面说的这些操作就是在这个方法中完成的，感兴趣的可以再去看下kafka源码，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs auto">def onControllerFailover() &#123;    if (isRunning) &#123;        info(&quot;Broker %d starting become controller state transition&quot;.format(config.brokerId))        //read controller epoch from zk        readControllerEpochFromZookeeper()        // increment the controller epoch        incrementControllerEpoch(zkUtils.zkClient)        // before reading source of truth from zookeeper, register the listeners to get broker/topic callbacks        registerReassignedPartitionsListener()        registerIsrChangeNotificationListener()        registerPreferredReplicaElectionListener()        partitionStateMachine.registerListeners()        replicaStateMachine.registerListeners()        initializeControllerContext()        replicaStateMachine.startup()        partitionStateMachine.startup()        // register the partition change listeners for all existing topics on failover        controllerContext.allTopics.foreach(topic =&gt; partitionStateMachine.registerPartitionChangeListener(topic))        info(&quot;Broker %d is ready to serve as the new controller with epoch %d&quot;.format(config.brokerId, epoch))        brokerState.newState(RunningAsController)        maybeTriggerPartitionReassignment()        maybeTriggerPreferredReplicaElection()        /* send partition leadership info to all live brokers */        sendUpdateMetadataRequest(controllerContext.liveOrShuttingDownBrokerIds.toSeq)        if (config.autoLeaderRebalanceEnable) &#123;            info(&quot;starting the partition rebalance scheduler&quot;)            autoRebalanceScheduler.startup()            autoRebalanceScheduler.schedule(&quot;partition-rebalance-thread&quot;, checkAndTriggerPartitionRebalance,                5, config.leaderImbalanceCheckIntervalSeconds.toLong, TimeUnit.SECONDS)        &#125;        deleteTopicManager.start()    &#125;    else        info(&quot;Controller has been shut down, aborting startup/failover&quot;)&#125;<br></code></pre></td></tr></table></figure>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%AC%E8%BD%BD/" class="print-no-link">#转载</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>秒懂 kafka HA（高可用）</div>
+      <div>http://example.com/2021/01/05/秒懂 kafka HA（高可用）/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Way Leung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年1月5日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/01/05/SpringBoot%E9%9B%86%E6%88%90kafka%E5%85%A8%E9%9D%A2%E5%AE%9E%E6%88%98/" title="SpringBoot集成kafka全面实战">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">SpringBoot集成kafka全面实战</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/01/05/%E5%A4%A7%E7%99%BD%E8%AF%9D%20kafka%20%E6%9E%B6%E6%9E%84%E5%8E%9F%E7%90%86/" title="大白话 kafka 架构原理">
+                        <span class="hidden-mobile">大白话 kafka 架构原理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

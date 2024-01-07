@@ -1,0 +1,840 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Way Leung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="开场白张三最近天气很热心情不是很好，所以他决定出去面试跟面试官聊聊天排解一下，结果刚投递简历就有人约了面试。 我丢，什么情况怎么刚投递出去就有人约我面试了？诶。。。真烦啊，哥已经不在江湖这么久了，江湖还是有哥的传说，我还是这么抢手的么？太烦恼了，帅无罪。  暗自窃喜的张三来到了某东现场面试的办公室，我丢，这面试官？不是吧，这满是划痕的Mac，这发量，难道就是传说中的架构师？  张三的心态一下子就崩">
+<meta property="og:type" content="article">
+<meta property="og:title" content="看完这篇ThreadLocal的详解，你也能用得这么溜">
+<meta property="og:url" content="http://example.com/2020/07/29/%E7%9C%8B%E5%AE%8C%E8%BF%99%E7%AF%87ThreadLocal%E7%9A%84%E8%AF%A6%E8%A7%A3%EF%BC%8C%E4%BD%A0%E4%B9%9F%E8%83%BD%E7%94%A8%E5%BE%97%E8%BF%99%E4%B9%88%E6%BA%9C/index.html">
+<meta property="og:site_name" content="小梁的个人博客">
+<meta property="og:description" content="开场白张三最近天气很热心情不是很好，所以他决定出去面试跟面试官聊聊天排解一下，结果刚投递简历就有人约了面试。 我丢，什么情况怎么刚投递出去就有人约我面试了？诶。。。真烦啊，哥已经不在江湖这么久了，江湖还是有哥的传说，我还是这么抢手的么？太烦恼了，帅无罪。  暗自窃喜的张三来到了某东现场面试的办公室，我丢，这面试官？不是吧，这满是划痕的Mac，这发量，难道就是传说中的架构师？  张三的心态一下子就崩">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRoc2pyOXI0ajMwNzMwNzNhYTEuanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRodXl1bWRhajMwZ28wOGMzeXkuanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRodnF3M3A5ajMwOGMwOGNteWYuanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRjc3FkZDcyajMweDIwYWxhYmsuanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRoeTByZXh6ajMwNHgwNTN0OWUuanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRoenV3cW96ajMwODcwNjRxMnguanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRmeTZndncwajMwdzAwOTNqc3UuanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRpcGM4MGhmajMwdzEwaHVnbzUuanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRncnE5YnhxajMwb28wYmNxNG4uanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRrcjV1NjQ5ajMwNHcwNThteGUuanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRta3g4dXBqajMwanowNm03NHUuanBn?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRuaDh2M2hhajMwdzEwYmJhYnIuanBn?x-oss-process=image/format,png">
+<meta property="article:published_time" content="2020-07-29T02:51:37.000Z">
+<meta property="article:modified_time" content="2024-01-07T14:15:10.607Z">
+<meta property="article:author" content="Way Leung">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRoc2pyOXI0ajMwNzMwNzNhYTEuanBn?x-oss-process=image/format,png">
+  
+  
+  
+  <title>看完这篇ThreadLocal的详解，你也能用得这么溜 - 小梁的个人博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","app_key":"OyBjbqUomyG2Y1ArgpK2iUlc","server_url":"https://bdcpj8k5.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="小梁的个人博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>wayleung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="看完这篇ThreadLocal的详解，你也能用得这么溜"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-07-29 10:51" pubdate>
+          2020年7月29日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          33 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">看完这篇ThreadLocal的详解，你也能用得这么溜</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h3 id="开场白"><a href="#开场白" class="headerlink" title="开场白"></a>开场白</h3><p>张三最近天气很热心情不是很好，所以他决定出去面试跟面试官聊聊天排解一下，结果刚投递简历就有人约了面试。</p>
+<p>我丢，什么情况怎么刚投递出去就有人约我面试了？诶。。。真烦啊，哥已经不在江湖这么久了，江湖还是有哥的传说，我还是这么抢手的么？太烦恼了，帅无罪。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRoc2pyOXI0ajMwNzMwNzNhYTEuanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>暗自窃喜的张三来到了某东现场面试的办公室，我丢，这面试官？不是吧，这满是划痕的Mac，这发量，难道就是传说中的架构师？</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRodXl1bWRhajMwZ28wOGMzeXkuanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>张三的心态一下子就崩了，出来第一场面试就遇到一个顶级面试官，这谁顶得住啊。</p>
+<p>你好，我是你的面试官Tony，看我的发型应该你能猜到我的身份了，我也话不说，我们直接开始好不好？看你简历写了多线程，来你跟我聊一下ThreadLocal吧，我很久没写代码不太熟悉了，你帮我回忆一下。</p>
+<p>我丢？这TM是人话？这是什么逻辑啊，说是问多线程然后一上来就来个这么冷门的ThreadLocal？心态崩了呀，再说你TM自己忘了不知道下去看看书么，来我这里找答案是什么鬼啊…</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRodnF3M3A5ajMwOGMwOGNteWYuanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>尽管十分不情愿，但是张三还是高速运转他的小脑袋，回忆起了ThreadLocal的种种细节…</p>
+<p>面试官说实话我在实际开发过程中用到ThreadLocal的地方不是很多，我在写这个文章的时候还刻意去把我电脑上几十个项目打开之后去全局搜索ThreadLocal发现除了系统源码的使用，很少在项目中用到，不过也还是有的。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRjc3FkZDcyajMweDIwYWxhYmsuanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>ThreadLocal的作用主要是做数据隔离，填充的数据只属于当前线程，变量的数据对别的线程而言是相对隔离的，在多线程环境下，如何防止自己的变量被其它线程篡改。</p>
+<h4 id="你能跟我说说它隔离有什么用，会用在什么场景么？"><a href="#你能跟我说说它隔离有什么用，会用在什么场景么？" class="headerlink" title="你能跟我说说它隔离有什么用，会用在什么场景么？"></a>你能跟我说说它隔离有什么用，会用在什么场景么？</h4><p>这，我都说了我很少用了，还问我，难受了呀，哦哦哦，有了想起来了，事务隔离级别。</p>
+<p>面试官你好，其实我第一时间想到的就是Spring实现事务隔离级别的源码，这还是当时我大学被女朋友甩了，一个人在图书馆哭泣的时候无意间发现的。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRoeTByZXh6ajMwNHgwNTN0OWUuanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>Spring采用Threadlocal的方式，来保证单个线程中的数据库操作使用的是同一个数据库连接，同时，采用这种方式可以使业务层使用事务时不需要感知并管理connection对象，通过传播级别，巧妙地管理多个事务配置之间的切换，挂起和恢复。</p>
+<p>Spring框架里面就是用的ThreadLocal来实现这种隔离，主要是在<code>TransactionSynchronizationManager</code>这个类里面，代码如下所示:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs auto">private static final Log logger = LogFactory.getLog(TransactionSynchronizationManager.class);<br><br>	private static final ThreadLocal&lt;Map&lt;Object, Object&gt;&gt; resources =<br>			new NamedThreadLocal&lt;&gt;(&quot;Transactional resources&quot;);<br><br>	private static final ThreadLocal&lt;Set&lt;TransactionSynchronization&gt;&gt; synchronizations =<br>			new NamedThreadLocal&lt;&gt;(&quot;Transaction synchronizations&quot;);<br><br>	private static final ThreadLocal&lt;String&gt; currentTransactionName =<br>			new NamedThreadLocal&lt;&gt;(&quot;Current transaction name&quot;);<br><br>  ……<br></code></pre></td></tr></table></figure>
+
+<p>Spring的事务主要是ThreadLocal和AOP去做实现的，我这里提一下，大家知道每个线程自己的链接是靠ThreadLocal保存的就好了，继续的细节我会在Spring章节细说的，暖么？</p>
+<p>除了源码里面使用到ThreadLocal的场景，你自己有使用他的场景么？一般你会怎么用呢？</p>
+<p>来了来了，加分项来了，这个我还真遇到过，装B的机会终于来了。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRoenV3cW96ajMwODcwNjRxMnguanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>有的有的面试官，这个我会！！！</p>
+<p>之前我们上线后发现部分用户的日期居然不对了，排查下来是<code>SimpleDataFormat</code>的锅，当时我们使用SimpleDataFormat的parse()方法，内部有一个Calendar对象，调用SimpleDataFormat的parse()方法会先调用Calendar.clear（），然后调用Calendar.add()，如果一个线程先调用了add()然后另一个线程又调用了clear()，这时候parse()方法解析的时间就不对了。</p>
+<p>其实要解决这个问题很简单，让每个线程都new 一个自己的 <code>SimpleDataFormat</code>就好了，但是1000个线程难道new1000个<code>SimpleDataFormat</code>？</p>
+<p>所以当时我们使用了线程池加上ThreadLocal包装<code>SimpleDataFormat</code>，再调用initialValue让每个线程有一个<code>SimpleDataFormat</code>的副本，从而解决了线程安全的问题，也提高了性能。</p>
+<h4 id="那……"><a href="#那……" class="headerlink" title="那……"></a>那……</h4><p>还有还有，我还有，您别着急问下一个，让我再加点分，拖延一下面试时间。</p>
+<p>我在项目中存在一个线程经常遇到横跨若干方法调用，需要传递的对象，也就是上下文（Context），它是一种状态，经常就是是用户身份、任务信息等，就会存在过渡传参的问题。</p>
+<p>使用到类似责任链模式，给每个方法增加一个context参数非常麻烦，而且有些时候，如果调用链有无法修改源码的第三方库，对象参数就传不进去了，所以我使用到了ThreadLocal去做了一下改造，这样只需要在调用前在ThreadLocal中设置参数，其他地方get一下就好了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs auto">before<br>  <br>void work(User user) &#123;<br>    getInfo(user);<br>    checkInfo(user);<br>    setSomeThing(user);<br>    log(user);<br>&#125;<br><br>then<br>  <br>void work(User user) &#123;<br>try&#123;<br>	  threadLocalUser.set(user);<br>	  // 他们内部  User u = threadLocalUser.get(); 就好了<br>    getInfo();<br>    checkInfo();<br>    setSomeThing();<br>    log();<br>    &#125; finally &#123;<br>     threadLocalUser.remove();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>我看了一下很多场景的cookie，session等数据隔离都是通过ThreadLocal去做实现的。</li>
+</ul>
+<p>对了我面试官允许我再秀一下知识广度，在Android中，Looper类就是利用了ThreadLocal的特性，保证每个线程只存在一个Looper对象。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs auto">static final ThreadLocal&lt;Looper&gt; sThreadLocal = new ThreadLocal&lt;Looper&gt;();<br>private static void prepare(boolean quitAllowed) &#123;<br>    if (sThreadLocal.get() != null) &#123;<br>        throw new RuntimeException(&quot;Only one Looper may be created per thread&quot;);<br>    &#125;<br>    sThreadLocal.set(new Looper(quitAllowed));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>面试官：我丢，这货怎么知道这么多场景？还把Android都扯了出来，不是吧阿sir，下面我要考考他原理了。</p>
+<p>嗯嗯，你回答得很好，那你能跟我说说他底层实现的原理么？</p>
+<p>好的面试官，我先说一下他的使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs auto">ThreadLocal&lt;String&gt; localName = new ThreadLocal();<br>localName.set(&quot;张三&quot;);<br>String name = localName.get();<br>localName.remove();<br></code></pre></td></tr></table></figure>
+
+<p>其实使用真的很简单，线程进来之后初始化一个可以泛型的ThreadLocal对象，之后这个线程只要在remove之前去get，都能拿到之前set的值，注意这里我说的是remove之前。</p>
+<p>他是能做到线程间数据隔离的，所以别的线程使用get（）方法是没办法拿到其他线程的值的，但是有办法可以做到，我后面会说。</p>
+<p>我们先看看他set的源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs auto">public void set(T value) &#123;<br>    Thread t = Thread.currentThread();// 获取当前线程<br>    ThreadLocalMap map = getMap(t);// 获取ThreadLocalMap对象<br>    if (map != null) // 校验对象是否为空<br>        map.set(this, value); // 不为空set<br>    else<br>        createMap(t, value); // 为空创建一个map对象<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>大家可以发现set的源码很简单，主要就是ThreadLocalMap我们需要关注一下，而ThreadLocalMap呢是当前线程Thread一个叫threadLocals的变量中获取的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs auto">ThreadLocalMap getMap(Thread t) &#123;<br>        return t.threadLocals;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs auto">public class Thread implements Runnable &#123;<br>      ……<br><br>    /* ThreadLocal values pertaining to this thread. This map is maintained<br>     * by the ThreadLocal class. */<br>    ThreadLocal.ThreadLocalMap threadLocals = null;<br><br>    /*<br>     * InheritableThreadLocal values pertaining to this thread. This map is<br>     * maintained by the InheritableThreadLocal class.<br>     */<br>    ThreadLocal.ThreadLocalMap inheritableThreadLocals = null;<br>  <br>     ……<br></code></pre></td></tr></table></figure>
+
+<p>这里我们基本上可以找到ThreadLocal数据隔离的真相了，每个线程Thread都维护了自己的threadLocals变量，所以在每个线程创建ThreadLocal的时候，实际上数据是存在自己线程Thread的threadLocals变量里面的，别人没办法拿到，从而实现了隔离。</p>
+<h4 id="ThreadLocalMap底层结构是怎么样子的呢？"><a href="#ThreadLocalMap底层结构是怎么样子的呢？" class="headerlink" title="ThreadLocalMap底层结构是怎么样子的呢？"></a>ThreadLocalMap底层结构是怎么样子的呢？</h4><p>面试官这个问题问得好啊，内心暗骂，让我歇一会不行么？</p>
+<p>张三笑着回答道，既然有个Map那他的数据结构其实是很像HashMap的，但是看源码可以发现，它并未实现Map接口，而且他的Entry是继承WeakReference（弱引用）的，也没有看到HashMap中的next，所以不存在链表了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs auto">static class ThreadLocalMap &#123;<br><br>        static class Entry extends WeakReference&lt;ThreadLocal&lt;?&gt;&gt; &#123;<br>            /** The value associated with this ThreadLocal. */<br>            Object value;<br><br>            Entry(ThreadLocal&lt;?&gt; k, Object v) &#123;<br>                super(k);<br>                value = v;<br>            &#125;<br>        &#125;<br>        ……<br>    &#125;    <br></code></pre></td></tr></table></figure>
+
+<p>结构大概长这样：</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRmeTZndncwajMwdzAwOTNqc3UuanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<h4 id="稍等，我有两个疑问你可以解答一下么？"><a href="#稍等，我有两个疑问你可以解答一下么？" class="headerlink" title="稍等，我有两个疑问你可以解答一下么？"></a>稍等，我有两个疑问你可以解答一下么？</h4><p>好呀，面试官你说。</p>
+<h4 id="为什么需要数组呢？没有了链表怎么解决Hash冲突呢？"><a href="#为什么需要数组呢？没有了链表怎么解决Hash冲突呢？" class="headerlink" title="为什么需要数组呢？没有了链表怎么解决Hash冲突呢？"></a>为什么需要数组呢？没有了链表怎么解决Hash冲突呢？</h4><p>用数组是因为，我们开发过程中可以一个线程可以有多个TreadLocal来存放不同类型的对象的，但是他们都将放到你当前线程的ThreadLocalMap里，所以肯定要数组来存。</p>
+<p>至于Hash冲突，我们先看一下源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs auto">private void set(ThreadLocal&lt;?&gt; key, Object value) &#123;<br>           Entry[] tab = table;<br>            int len = tab.length;<br>            int i = key.threadLocalHashCode &amp; (len-1);<br>            for (Entry e = tab[i];<br>                 e != null;<br>                 e = tab[i = nextIndex(i, len)]) &#123;<br>                ThreadLocal&lt;?&gt; k = e.get();<br><br>                if (k == key) &#123;<br>                    e.value = value;<br>                    return;<br>                &#125;<br>                if (k == null) &#123;<br>                    replaceStaleEntry(key, value, i);<br>                    return;<br>                &#125;<br>            &#125;<br>            tab[i] = new Entry(key, value);<br>            int sz = ++size;<br>            if (!cleanSomeSlots(i, sz) &amp;&amp; sz &gt;= threshold)<br>                rehash();<br>        &#125;<br></code></pre></td></tr></table></figure>
+
+<p>我从源码里面看到ThreadLocalMap在存储的时候会给每一个ThreadLocal对象一个threadLocalHashCode，在插入过程中，根据ThreadLocal对象的hash值，定位到table中的位置i，**int i &#x3D; key.threadLocalHashCode &amp; (len-1)**。</p>
+<p>然后会判断一下：如果当前位置是空的，就初始化一个Entry对象放在位置i上；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs auto">if (k == null) &#123;<br>    replaceStaleEntry(key, value, i);<br>    return;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果位置i不为空，如果这个Entry对象的key正好是即将设置的key，那么就刷新Entry中的value；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs auto">if (k == key) &#123;<br>    e.value = value;<br>    return;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果位置i的不为空，而且key不等于entry，那就找下一个空位置，直到为空为止。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRpcGM4MGhmajMwdzEwaHVnbzUuanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>这样的话，在get的时候，也会根据ThreadLocal对象的hash值，定位到table中的位置，然后判断该位置Entry对象中的key是否和get的key一致，如果不一致，就判断下一个位置，set和get如果冲突严重的话，效率还是很低的。</p>
+<p>以下是get的源码，是不是就感觉很好懂了：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs auto"> private Entry getEntry(ThreadLocal&lt;?&gt; key) &#123;<br>            int i = key.threadLocalHashCode &amp; (table.length - 1);<br>            Entry e = table[i];<br>            if (e != null &amp;&amp; e.get() == key)<br>                return e;<br>            else<br>                return getEntryAfterMiss(key, i, e);<br>        &#125;<br><br> private Entry getEntryAfterMiss(ThreadLocal&lt;?&gt; key, int i, Entry e) &#123;<br>            Entry[] tab = table;<br>            int len = tab.length;<br>// get的时候一样是根据ThreadLocal获取到table的i值，然后查找数据拿到后会对比key是否相等  if (e != null &amp;&amp; e.get() == key)。<br>            while (e != null) &#123;<br>                ThreadLocal&lt;?&gt; k = e.get();<br>              // 相等就直接返回，不相等就继续查找，找到相等位置。<br>                if (k == key)<br>                    return e;<br>                if (k == null)<br>                    expungeStaleEntry(i);<br>                else<br>                    i = nextIndex(i, len);<br>                e = tab[i];<br>            &#125;<br>            return null;<br>        &#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="能跟我说一下对象存放在哪里么？"><a href="#能跟我说一下对象存放在哪里么？" class="headerlink" title="能跟我说一下对象存放在哪里么？"></a>能跟我说一下对象存放在哪里么？</h4><p>在Java中，栈内存归属于单个线程，每个线程都会有一个栈内存，其存储的变量只能在其所属线程中可见，即栈内存可以理解成线程的私有内存，而堆内存中的对象对所有线程可见，堆内存中的对象可以被所有线程访问。</p>
+<h4 id="那么是不是说ThreadLocal的实例以及其值存放在栈上呢？"><a href="#那么是不是说ThreadLocal的实例以及其值存放在栈上呢？" class="headerlink" title="那么是不是说ThreadLocal的实例以及其值存放在栈上呢？"></a>那么是不是说ThreadLocal的实例以及其值存放在栈上呢？</h4><p>其实不是的，因为ThreadLocal实例实际上也是被其创建的类持有（更顶端应该是被线程持有），而ThreadLocal的值其实也是被线程实例持有，它们都是位于堆上，只是通过一些技巧将可见性修改成了线程可见。</p>
+<h4 id="如果我想共享线程的ThreadLocal数据怎么办？"><a href="#如果我想共享线程的ThreadLocal数据怎么办？" class="headerlink" title="如果我想共享线程的ThreadLocal数据怎么办？"></a>如果我想共享线程的ThreadLocal数据怎么办？</h4><p>使用<code>InheritableThreadLocal</code>可以实现多个线程访问ThreadLocal的值，我们在主线程中创建一个<code>InheritableThreadLocal</code>的实例，然后在子线程中得到这个<code>InheritableThreadLocal</code>实例设置的值。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs auto">private void test() &#123;    <br>final ThreadLocal threadLocal = new InheritableThreadLocal();       <br>threadLocal.set(&quot;帅得一匹&quot;);    <br>Thread t = new Thread() &#123;        <br>    @Override        <br>    public void run() &#123;            <br>      super.run();            <br>      Log.i( &quot;张三帅么 =&quot; + threadLocal.get());        <br>    &#125;    <br>  &#125;;          <br>  t.start(); <br>&#125; <br></code></pre></td></tr></table></figure>
+
+<p>在子线程中我是能够正常输出那一行日志的，这也是我之前面试视频提到过的父子线程数据传递的问题。</p>
+<h4 id="怎么传递的呀？"><a href="#怎么传递的呀？" class="headerlink" title="怎么传递的呀？"></a>怎么传递的呀？</h4><p>传递的逻辑很简单，我在开头Thread代码提到threadLocals的时候，你们再往下看看我刻意放了另外一个变量：</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRncnE5YnhxajMwb28wYmNxNG4uanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>Thread源码中，我们看看Thread.init初始化创建的时候做了什么：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs auto">public class Thread implements Runnable &#123;<br>  ……<br>   if (inheritThreadLocals &amp;&amp; parent.inheritableThreadLocals != null)<br>      this.inheritableThreadLocals=ThreadLocal.createInheritedMap(parent.inheritableThreadLocals);<br>  ……<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我就截取了部分代码，如果线程的<code>inheritThreadLocals</code>变量不为空，比如我们上面的例子，而且父线程的<code>inheritThreadLocals</code>也存在，那么我就把父线程的<code>inheritThreadLocals</code>给当前线程的<code>inheritThreadLocals</code>。</p>
+<p>是不是很有意思？</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRrcjV1NjQ5ajMwNHcwNThteGUuanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>小伙子你懂的确实很多，那你算是一个深度的ThreadLocal用户了，你发现ThreadLocal的问题了么？</p>
+<p>你是说内存泄露么？</p>
+<p>我丢，这小子为啥知道我要问什么？嗯嗯对的，你说一下。</p>
+<p>这个问题确实会存在的，我跟大家说一下为什么，还记得我上面的代码么？</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRta3g4dXBqajMwanowNm03NHUuanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>ThreadLocal在保存的时候会把自己当做Key存在ThreadLocalMap中，正常情况应该是key和value都应该被外界强引用才对，但是现在key被设计成WeakReference弱引用了。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly90dmExLnNpbmFpbWcuY24vbGFyZ2UvMDA3UzhaSWxseTFnaDRuaDh2M2hhajMwdzEwYmJhYnIuanBn?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>我先给大家介绍一下弱引用：</p>
+<blockquote>
+<p>只具有弱引用的对象拥有更短暂的生命周期，在垃圾回收器线程扫描它所管辖的内存区域的过程中，一旦发现了只具有弱引用的对象，不管当前内存空间足够与否，都会回收它的内存。</p>
+<p>不过，由于垃圾回收器是一个优先级很低的线程，因此不一定会很快发现那些只具有弱引用的对象。</p>
+</blockquote>
+<p>这就导致了一个问题，ThreadLocal在没有外部强引用时，发生GC时会被回收，如果创建ThreadLocal的线程一直持续运行，那么这个Entry对象中的value就有可能一直得不到回收，发生内存泄露。</p>
+<p>就比如线程池里面的线程，线程都是复用的，那么之前的线程实例处理完之后，出于复用的目的线程依然存活，所以，ThreadLocal设定的value值被持有，导致内存泄露。</p>
+<p>按照道理一个线程使用完，ThreadLocalMap是应该要被清空的，但是现在线程被复用了。</p>
+<h4 id="那怎么解决？"><a href="#那怎么解决？" class="headerlink" title="那怎么解决？"></a>那怎么解决？</h4><p>在代码的最后使用remove就好了，我们只要记得在使用的最后用remove把值清空就好了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs auto">ThreadLocal&lt;String&gt; localName = new ThreadLocal();<br>try &#123;<br>    localName.set(&quot;张三&quot;);<br>    ……<br>&#125; finally &#123;<br>    localName.remove();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>remove的源码很简单，找到对应的值全部置空，这样在垃圾回收器回收的时候，会自动把他们回收掉。</p>
+<h4 id="那为什么ThreadLocalMap的key要设计成弱引用？"><a href="#那为什么ThreadLocalMap的key要设计成弱引用？" class="headerlink" title="那为什么ThreadLocalMap的key要设计成弱引用？"></a>那为什么ThreadLocalMap的key要设计成弱引用？</h4><p>key不设置成弱引用的话就会造成和entry中value一样内存泄漏的场景。</p>
+<p>补充一点：ThreadLocal的不足，我觉得可以通过看看netty的fastThreadLocal来弥补，大家有兴趣可以康康。</p>
+<p>好了，你不仅把我问的都回答了，我不知道的你甚至都说了，ThreadLocal你过关了，不过JUC的面试才刚刚开始，希望你以后越战越勇，最后拿个好offer哟。</p>
+<p>什么鬼，突然这么煽情，不是很为难我的么?难道是为了锻炼我？难为大师这样为我着想，我还一直心里暗骂他，不说了回去好好学了。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>其实ThreadLocal用法很简单，里面的方法就那几个，算上注释源码都没多少行，我用了十多分钟就过了一遍了，但是在我深挖每一个方法背后逻辑的时候，也让我不得不感慨Josh Bloch 和 Doug Lea的厉害之处。</p>
+<p>在细节设计的处理其实往往就是我们和大神的区别，我认为很多不合理的点，在Google和自己不断深入了解之后才发现这才是合理，真的不服不行。</p>
+<p>ThreadLocal是多线程里面比较冷门的一个类，使用频率比不上别的方法和类，但是通过我这篇文章，不知道你是否有新的认知呢？</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%AC%E8%BD%BD/" class="print-no-link">#转载</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>看完这篇ThreadLocal的详解，你也能用得这么溜</div>
+      <div>http://example.com/2020/07/29/看完这篇ThreadLocal的详解，你也能用得这么溜/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Way Leung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年7月29日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/07/29/Java%E5%B9%B6%E5%8F%91%E4%B9%8BAQS%E8%AF%A6%E8%A7%A3/" title="Java并发之AQS详解">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java并发之AQS详解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/07/10/synchronized%E5%9B%9B%E7%A7%8D%E9%94%81%E7%8A%B6%E6%80%81%E7%9A%84%E5%8D%87%E7%BA%A7/" title="synchronized四种锁状态的升级">
+                        <span class="hidden-mobile">synchronized四种锁状态的升级</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

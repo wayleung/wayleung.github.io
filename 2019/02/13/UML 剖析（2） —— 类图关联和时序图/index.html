@@ -1,0 +1,853 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Way Leung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="UML 剖析（2） —— 类图关联和时序图上篇文章讲解完类图实体，现在讲解类图关联，如果没阅读过类图实体的那篇文章，链接在这：UML 剖析（1） —— 类图实体 ，这节继续还是使用 StarUML 来讲解。 1. 类图关联 下面一个一个讲解上图的关联属性。 1.2 AssociationAssociation 是双向关联的意思，比如老师与学生就是一个双向关联的关系。举例如下：  上面这个图 Stu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UML 剖析（2） —— 类图关联和时序图">
+<meta property="og:url" content="http://example.com/2019/02/13/UML%20%E5%89%96%E6%9E%90%EF%BC%882%EF%BC%89%20%E2%80%94%E2%80%94%20%E7%B1%BB%E5%9B%BE%E5%85%B3%E8%81%94%E5%92%8C%E6%97%B6%E5%BA%8F%E5%9B%BE/index.html">
+<meta property="og:site_name" content="小梁的个人博客">
+<meta property="og:description" content="UML 剖析（2） —— 类图关联和时序图上篇文章讲解完类图实体，现在讲解类图关联，如果没阅读过类图实体的那篇文章，链接在这：UML 剖析（1） —— 类图实体 ，这节继续还是使用 StarUML 来讲解。 1. 类图关联 下面一个一个讲解上图的关联属性。 1.2 AssociationAssociation 是双向关联的意思，比如老师与学生就是一个双向关联的关系。举例如下：  上面这个图 Stu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c31955a34e72?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319559f0afd?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319563d5d03?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c3195806a45d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c31956b936be?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319577986d5?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c31980cbca0d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c31980943758?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c31981400452?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c3198312d5a7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319845d6db7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c3198812cfb9?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319a3017de5?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319a579e7a4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319a579e7a4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319a80c8eb8?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319a8aaefea?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319ada0f23b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319b83675b7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319c38b0e19?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319caf8f555?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319d33bd790?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319d9f68994?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319dd3291ef?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319dd1833e3?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319eb8056db?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319ed68ca17?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319f591a4ce?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319fbdf712b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c319ff8fefd4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c31a035fd7e4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="article:published_time" content="2019-02-13T06:37:52.000Z">
+<meta property="article:modified_time" content="2024-01-07T14:14:48.625Z">
+<meta property="article:author" content="Way Leung">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/1/25/1612c31955a34e72?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+  
+  
+  
+  <title>UML 剖析（2） —— 类图关联和时序图 - 小梁的个人博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","app_key":"OyBjbqUomyG2Y1ArgpK2iUlc","server_url":"https://bdcpj8k5.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="小梁的个人博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>wayleung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="UML 剖析（2） —— 类图关联和时序图"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2019-02-13 14:37" pubdate>
+          2019年2月13日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          12 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">UML 剖析（2） —— 类图关联和时序图</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="UML-剖析（2）-——-类图关联和时序图"><a href="#UML-剖析（2）-——-类图关联和时序图" class="headerlink" title="UML 剖析（2） —— 类图关联和时序图"></a>UML 剖析（2） —— 类图关联和时序图</h2><p>上篇文章讲解完类图实体，现在讲解类图关联，如果没阅读过类图实体的那篇文章，链接在这：<a target="_blank" rel="noopener" href="https://juejin.im/post/5a6984c06fb9a01c9140954c">UML 剖析（1） —— 类图实体</a> ，这节继续还是使用 StarUML 来讲解。</p>
+<h2 id="1-类图关联"><a href="#1-类图关联" class="headerlink" title="1. 类图关联"></a>1. 类图关联</h2><p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c31955a34e72?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Classes(Basic)"></p>
+<p>下面一个一个讲解上图的关联属性。</p>
+<h3 id="1-2-Association"><a href="#1-2-Association" class="headerlink" title="1.2 Association"></a>1.2 Association</h3><p>Association 是双向关联的意思，比如老师与学生就是一个双向关联的关系。举例如下：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319559f0afd?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Association"></p>
+<p>上面这个图 Student 的 1..* 的意思一个到多个的意思，也就是代表一个 Teacher 对象对应多个 Student。</p>
+<h3 id="1-3-Directed-Association"><a href="#1-3-Directed-Association" class="headerlink" title="1.3 Directed Association"></a>1.3 Directed Association</h3><p>这个关联是有方向关联的意思，举例图如下：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319563d5d03?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Directed Association"></p>
+<p>这个的意思是就是被关联类 B 以类属性出现在类 A。</p>
+<h3 id="1-4-Aggregation"><a href="#1-4-Aggregation" class="headerlink" title="1.4 Aggregation"></a>1.4 Aggregation</h3><p>这个是聚合的意思，体现了整体和部分的关系。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c3195806a45d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Aggregation"></p>
+<p>上图的意思就是一个 School 类拥有一个或多个 Student 类。</p>
+<h3 id="1-5-Composition"><a href="#1-5-Composition" class="headerlink" title="1.5 Composition"></a>1.5 Composition</h3><p>是一种比 Aggregation 更强的聚合关系，类似于孕妇与胎儿的关系，胎儿是依附于孕妇的，如果孕妇死了，胎儿也不能生存。举例如图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c31956b936be?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Composition"></p>
+<h3 id="1-6-Dependency"><a href="#1-6-Dependency" class="headerlink" title="1.6 Dependency"></a>1.6 Dependency</h3><p>这个的意思其实就是一个类依赖另一个类，举例来说就是一个类作为参数在另一个类的方法中作为调用。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319577986d5?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Dependency"></p>
+<h3 id="1-7-Generalization"><a href="#1-7-Generalization" class="headerlink" title="1.7 Generalization"></a>1.7 Generalization</h3><p>这个的意思是泛化关系，表示一个类对另一个类的继承。下图就是 A 继承 B 的意思。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c31980cbca0d?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Generalization"></p>
+<h3 id="1-8-Interface-Realization"><a href="#1-8-Interface-Realization" class="headerlink" title="1.8 Interface Realization"></a>1.8 Interface Realization</h3><p>这个也非常简单，就是接口实现的意思。举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c31980943758?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Interface Realization"></p>
+<h2 id="2-时序图"><a href="#2-时序图" class="headerlink" title="2. 时序图"></a>2. 时序图</h2><h3 id="2-1-定义"><a href="#2-1-定义" class="headerlink" title="2.1 定义"></a>2.1 定义</h3><p>时序图其实就是对象之间传递消息的时间顺序。现在还是使用 StarUML 来讲解时序图的元素。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c31981400452?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c3198312d5a7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload></p>
+<h3 id="2-2-Lifeline"><a href="#2-2-Lifeline" class="headerlink" title="2.2 Lifeline"></a>2.2 Lifeline</h3><p>这个的意思就是一个对象，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319845d6db7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Lifeline"></p>
+<h3 id="2-3-Message"><a href="#2-3-Message" class="headerlink" title="2.3 Message"></a>2.3 Message</h3><p>这个的意思就是发送一条普通消息，比如用户发送一条登录的消息给服务器，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c3198812cfb9?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Message"></p>
+<h3 id="2-4-Self-Message"><a href="#2-4-Self-Message" class="headerlink" title="2.4 Self Message"></a>2.4 Self Message</h3><p>这个的意思就是自己发送消息给自己，比如一个对象的一个方法调用了本对象的另一个方法，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319a3017de5?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Self Message"></p>
+<h3 id="2-5-Async-Message"><a href="#2-5-Async-Message" class="headerlink" title="2.5 Async Message"></a>2.5 Async Message</h3><p>这个的意思是异步消息，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319a579e7a4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Async Message"></p>
+<p>这个图的意思就是 User 发出 Login 的消息给 Server，Server 发送保存用户消息给到数据库，注意这里的消息是异步消息。</p>
+<h3 id="2-6-Reply-Message"><a href="#2-6-Reply-Message" class="headerlink" title="2.6 Reply Message"></a>2.6 Reply Message</h3><p>这里的意思是回调消息，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319a579e7a4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Reply Message"></p>
+<p>上图的意思就是 User 发出 Login 的消息给 Server 后，Server 同时发出异步消息给数据库和登录结果给到用户。</p>
+<h3 id="2-7-Create-Message"><a href="#2-7-Create-Message" class="headerlink" title="2.7 Create Message"></a>2.7 Create Message</h3><p>这个的意思就是创建一个对象，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319a80c8eb8?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Create Message"></p>
+<h3 id="2-8-Delete-Message"><a href="#2-8-Delete-Message" class="headerlink" title="2.8 Delete Message"></a>2.8 Delete Message</h3><p>这个的意思是销毁一个对象，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319a8aaefea?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Delete Message"></p>
+<h3 id="2-9-Async-Signal-Message"><a href="#2-9-Async-Signal-Message" class="headerlink" title="2.9 Async Signal Message"></a>2.9 Async Signal Message</h3><p>这个的意思就是发送一个信号消息，意思就是当某个对象达到某个条件后就会自动发送一个信号消息给另一个对象，类似于观察者模式。</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319ada0f23b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Async Signal Message"></p>
+<h3 id="2-10-Found-Message"><a href="#2-10-Found-Message" class="headerlink" title="2.10 Found Message"></a>2.10 Found Message</h3><p>这个的意思就是发送一个不知道来源的消息，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319b83675b7?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Found Message"></p>
+<h3 id="2-11-Lost-Message"><a href="#2-11-Lost-Message" class="headerlink" title="2.11 Lost Message"></a>2.11 Lost Message</h3><p>这个的意思就是消息发送到一个不知道来源的地方，也可以说消息没有到达目的地，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319c38b0e19?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Lost Message"></p>
+<h3 id="2-12-Endpoint"><a href="#2-12-Endpoint" class="headerlink" title="2.12 Endpoint"></a>2.12 Endpoint</h3><p>这个的意思就是一个不知来源的消息对象，如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319caf8f555?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Endpoint"></p>
+<h3 id="2-13-Gate"><a href="#2-13-Gate" class="headerlink" title="2.13 Gate"></a>2.13 Gate</h3><p>这个的意思用于在时序图外与图内的消息交互，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319d33bd790?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Gate"></p>
+<p>上图的正方形就是 Gate。</p>
+<h3 id="2-14-State-Invariant"><a href="#2-14-State-Invariant" class="headerlink" title="2.14 State Invariant"></a>2.14 State Invariant</h3><p>这个的意思就是约束某个对象要在某一个状态下，举例如下图：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319d9f68994?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="State Invariant"></p>
+<p>这个的意思就是说在 start 开始前，Task 必须要在 Finish 状态。</p>
+<h3 id="2-15-Combined-Fragment"><a href="#2-15-Combined-Fragment" class="headerlink" title="2.15 Combined Fragment"></a>2.15 Combined Fragment</h3><p>这个的翻译叫组合片段，它是用来解决交互执行的条件和方式。 组合片段常用的有这么几种：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>alt（alternatives）</td>
+<td>选择</td>
+<td>包含一个片段列表，这个片段列表有备选的消息序列，每次只能走一个消息序列</td>
+</tr>
+<tr>
+<td>opt（option)</td>
+<td>选项</td>
+<td>包含一个可能会发生的消息序列</td>
+</tr>
+<tr>
+<td>loop（iteration）</td>
+<td>重复</td>
+<td>包含一个可以重复的消息序列</td>
+</tr>
+<tr>
+<td>par（parallel）</td>
+<td>并行</td>
+<td>包含一个可以并行的消息序列</td>
+</tr>
+<tr>
+<td>break（break）</td>
+<td>中断</td>
+<td>如果执行了此部分则放弃了序列的其他部分的执行，可用于中断 loop 片段</td>
+</tr>
+</tbody></table>
+<p>以下来各自举例说明：</p>
+<h4 id="2-15-1-alt（alternatives）"><a href="#2-15-1-alt（alternatives）" class="headerlink" title="2.15.1 alt（alternatives）"></a>2.15.1 alt（alternatives）</h4><p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319dd3291ef?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="alt（alternatives）"></p>
+<p>上图的意思就是当满足了 a &gt; 1 条件后，就会执行 Message1，否则执行 Message2。</p>
+<h4 id="2-15-2-opt（option"><a href="#2-15-2-opt（option" class="headerlink" title="2.15.2 opt（option)"></a>2.15.2 opt（option)</h4><p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319dd1833e3?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="opt（option)"></p>
+<p>上图的意思就是当满足了 a &gt; 1 条件后，才会执行 Message1。</p>
+<h4 id="2-15-3-loop（iteration）"><a href="#2-15-3-loop（iteration）" class="headerlink" title="2.15.3 loop（iteration）"></a>2.15.3 loop（iteration）</h4><p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319eb8056db?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="loop（iteration）"></p>
+<p>上图的意思是不停重复发送 Message1 消息。如果要限定 loop 的次数的话也可以按下图这样：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319ed68ca17?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="loop(10)"></p>
+<p>这样就代表这个循环重复了 10 次。</p>
+<h4 id="2-15-4-par（parallel）"><a href="#2-15-4-par（parallel）" class="headerlink" title="2.15.4 par（parallel）"></a>2.15.4 par（parallel）</h4><p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319f591a4ce?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="par（parallel）"></p>
+<p>上图的意思就是并行发送三条消息。</p>
+<h4 id="2-15-6-break（break）"><a href="#2-15-6-break（break）" class="headerlink" title="2.15.6 break（break）"></a>2.15.6 break（break）</h4><p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319fbdf712b?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="break（break）"></p>
+<p>上图的意思就是当 a &gt; 0 时，就会跳出循环，发送消息到 ClassC。</p>
+<p>常用的组合片段大概就是这些，如果各位对其他片段有兴趣的话，可以自行研究，这里就不再细说了。</p>
+<h3 id="2-16-Continuation"><a href="#2-16-Continuation" class="headerlink" title="2.16 Continuation"></a>2.16 Continuation</h3><p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c319ff8fefd4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Continuation"></p>
+<p>这个的意思用来表示这个序列的作用。</p>
+<h3 id="2-17-Interaction-Use"><a href="#2-17-Interaction-Use" class="headerlink" title="2.17 Interaction Use"></a>2.17 Interaction Use</h3><p>这个的意思就是用来描述两个对象的交互现象，举例如下：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/1/25/1612c31a035fd7e4?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" srcset="/img/loading.gif" lazyload alt="Interaction Use"></p>
+<p>这个的意思就是 User 和 UserManager 的交互结果，User 使用 id 和 password 作为参数，UserManager 返回 result 作为 结果。</p>
+<p>参考书籍与文章：</p>
+<p><a href="https://link.juejin.im/?target=https://link.jianshu.com/?t=https%253A%252F%252Fbook.douban.com%252Fsubject%252F1792387%252F">《UML和模式应用》</a></p>
+<p><a href="https://link.juejin.im/?target=https://link.jianshu.com/?t=https%253A%252F%252Fbook.douban.com%252Fsubject%252F1792387%252F">《大象：Thinking in UML》</a></p>
+<p><a href="https://link.juejin.im/?target=https://www.uml-diagrams.org/interaction-message.html">UML Message</a></p>
+<p><a href="https://link.juejin.im/?target=https://www.uml-diagrams.org/sequence-diagrams.html">UML Sequence Diagrams</a></p>
+<p>原文：<a target="_blank" rel="noopener" href="https://juejin.im/post/5a69857a6fb9a01c952647e1">https://juejin.im/post/5a69857a6fb9a01c952647e1</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%AC%E8%BD%BD/" class="print-no-link">#转载</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>UML 剖析（2） —— 类图关联和时序图</div>
+      <div>http://example.com/2019/02/13/UML 剖析（2） —— 类图关联和时序图/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Way Leung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2019年2月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/02/26/%E6%8A%9B%E5%BC%83%E5%9B%BE%E5%BD%A2%E5%8C%96%E7%AE%A1%E7%90%86%EF%BC%8C%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BB%8E%E5%88%9B%E5%BB%BA%E5%BA%93%E5%88%B0%E9%AB%98%E7%BA%A7%E6%9F%A5%E8%AF%A2%E7%94%A8%E5%88%B0%E7%9A%84sql%E8%AF%AD%E5%8F%A5%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89/" title="抛弃图形化管理，数据库从创建库到高级查询用到的sql语句（持续更新）">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">抛弃图形化管理，数据库从创建库到高级查询用到的sql语句（持续更新）</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/02/12/%E7%90%86%E8%A7%A3Future%E4%B8%8ECallable/" title="理解Future与Callable">
+                        <span class="hidden-mobile">理解Future与Callable</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

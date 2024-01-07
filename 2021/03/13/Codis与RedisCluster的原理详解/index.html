@@ -1,0 +1,793 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Way Leung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Codis与RedisCluster的原理详解最近入职新公司，公司使用的是Codis去同步Redis节点间的数据，所以最近去了解一下Codis的相关知识，找到一篇不错的文章，故转载下来 背景介绍#我们先来看一下为什么要做集群，如果我们要部署一个单节点Redis，很明显会遇到单点故障的问题。  首先能想到解决单点故障的方法，就是做主从，但是当有海量存储需求时，单一的主从结构就会出问题，说问题之前要先">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Codis与RedisCluster的原理详解">
+<meta property="og:url" content="http://example.com/2021/03/13/Codis%E4%B8%8ERedisCluster%E7%9A%84%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="小梁的个人博客">
+<meta property="og:description" content="Codis与RedisCluster的原理详解最近入职新公司，公司使用的是Codis去同步Redis节点间的数据，所以最近去了解一下Codis的相关知识，找到一篇不错的文章，故转载下来 背景介绍#我们先来看一下为什么要做集群，如果我们要部署一个单节点Redis，很明显会遇到单点故障的问题。  首先能想到解决单点故障的方法，就是做主从，但是当有海量存储需求时，单一的主从结构就会出问题，说问题之前要先">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/b6db2d7c186516e1ee572d2f553df61b.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/8db81742befce4fb90c531d2c3375c78.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/fa9320154f5b3f82293dec53903e47d6.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/cb3bcdb745da8bd59f9d3aa1050c4b93.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/d51b5e57179e78e09b633aeb88a35ea5.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/8b06d4f3cc1e17fcc98109b8944ab0d7.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/b45cb95f1c8f6bc4b3fe9b9fc944fd61.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/a31709270623f45d43669ac24e073fe0.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/d4e170ac091f1784f0a8e3e6482be2d6.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/7a7908b6ec4ab2b779920cc85ce36a57.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/7073627e3030fc933542ccd818e123c0.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/342288e247a5c1c1ec0e0648b56e4b1f.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/613a9fb4039d4c9108460c36cd566396.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/990c09e16ba4cd360b775dbd24bea91c.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/951d430eb1c33b74ba99018cc67655b0.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/cf68d0878e02b2cdd1a5b45734adad5e.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/69ecf12069f8cee35ccbaade6d0dd0e0.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/ba36eab6d57b2587355c222bec1fd128.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/0b2c5c1112b25e0273d417c4f3ce1f3a.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/ac12eb13e37f6278dd99e8f72aa714a0.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/5427c8fa82932768fcc479eb21d6c269.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/95a8c93bdb5532713108ab80c2b56477.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/7e1bc48c8a96881ab6d515d9adec1afd.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/6b34dd05b2a7fb8d2c4e15908266472d.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/img_convert/b6a006f88dcef7f2cf1b07f9405f58cd.png">
+<meta property="article:published_time" content="2021-03-13T06:58:50.000Z">
+<meta property="article:modified_time" content="2024-01-07T10:21:22.068Z">
+<meta property="article:author" content="Way Leung">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/img_convert/b6db2d7c186516e1ee572d2f553df61b.png">
+  
+  
+  
+  <title>Codis与RedisCluster的原理详解 - 小梁的个人博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","app_key":"OyBjbqUomyG2Y1ArgpK2iUlc","server_url":"https://bdcpj8k5.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="小梁的个人博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>wayleung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Codis与RedisCluster的原理详解"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-03-13 14:58" pubdate>
+          2021年3月13日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          22 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Codis与RedisCluster的原理详解</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="Codis与RedisCluster的原理详解"><a href="#Codis与RedisCluster的原理详解" class="headerlink" title="Codis与RedisCluster的原理详解"></a><a target="_blank" rel="noopener" href="https://www.cnblogs.com/pingyeaa/p/11294773.html">Codis与RedisCluster的原理详解</a></h2><p>最近入职新公司，公司使用的是Codis去同步Redis节点间的数据，所以最近去了解一下Codis的相关知识，找到一篇不错的文章，故转载下来</p>
+<h3 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍#"></a>背景介绍<a target="_blank" rel="noopener" href="https://www.cnblogs.com/pingyeaa/p/11294773.html#381988702">#</a></h3><p>我们先来看一下为什么要做集群，如果我们要部署一个单节点Redis，很明显会遇到单点故障的问题。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141103915-106719622.png"><img src="https://img-blog.csdnimg.cn/img_convert/b6db2d7c186516e1ee572d2f553df61b.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>首先能想到解决单点故障的方法，就是做主从，但是当有海量存储需求时，单一的主从结构就会出问题，说问题之前要先了解一下主从之间是如何复制的。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141411608-792399561.png"><img src="https://img-blog.csdnimg.cn/img_convert/8db81742befce4fb90c531d2c3375c78.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>我们把Redis分为三个部分，分别是客户端、主节点以及从节点，如果从节点要同步主节点的数据，它首先会发Sync指令给主节点，主节点收到指令之后会执行BGSAVE命令生成RDB文件，这个RDB文件指的是快照文件，它是Redis两种备份方式的其中一种，另一种叫AOF，它的原理是将所有的写入指令存入文件，mysql的binlog原理是一样的。</p>
+<p>如果主节点在生成RDB的过程当中，客户端发来了写入指令，这个时候主节点会把指令全部写入缓冲区，等RDB生成完了，会把RDB文件发送给从节点，最后再把缓冲区的指令发送给从节点。这样就完成了整个的复制。</p>
+<p>我们刚才说单纯地做主从是有缺陷的，这个缺陷就是如果我们要存储海量的数据，那么BGSAVE指令生成的RDB文件会非常巨大，这个文件传送给从节点也会非常慢，如果缓冲区命令很多的话，从节点同步数据时也会执行很久，所以，要解决单点问题和海量存储问题，还是要考虑做集群。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141301491-828982558.png"><img src="https://img-blog.csdnimg.cn/img_convert/fa9320154f5b3f82293dec53903e47d6.png" srcset="/img/loading.gif" lazyload></a></p>
+<h3 id="Redis常见集群方案"><a href="#Redis常见集群方案" class="headerlink" title="Redis常见集群方案#"></a>Redis常见集群方案<a target="_blank" rel="noopener" href="https://www.cnblogs.com/pingyeaa/p/11294773.html#3388209721">#</a></h3><p>Redis集群方案目前主流的有三种，分别是Twemproxy、Codis和Redis Cluster。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141518199-781410417.png"><img src="https://img-blog.csdnimg.cn/img_convert/cb3bcdb745da8bd59f9d3aa1050c4b93.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>Twemproxy，是推特开源的，它最大的缺点就是无法平滑的扩缩容，而Codis解决了Twemproxy扩缩容的问题，而且兼容了Twemproxy，它是由豌豆荚开源的，和Twemproxy都是代理模式。其实Codis能发展起来的一个主要原因是它是在Redis官方集群方案漏洞百出的时候率先成熟稳定的。以现在的Redis官方集群方案，这两个好像没有太大差别了，不过我也没有去做性能测试，不清楚哪个最好。</p>
+<p>Redis Cluster是由官方出品的，用去中心化的方式实现，不属于代理模式，今天主要讲codis，redis cluster后面也会过一下。下面，来看一下Codis的实现原理。</p>
+<h3 id="Codis原理"><a href="#Codis原理" class="headerlink" title="Codis原理#"></a>Codis原理<a target="_blank" rel="noopener" href="https://www.cnblogs.com/pingyeaa/p/11294773.html#3237315914">#</a></h3><p>我们换一种方式去讲，就按照Codis的架构演进一下，这样理解会比较清晰一点，假如现在只有一个Redis Server，怎么让它变得高可用？</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141623637-1144964117.png"><img src="https://img-blog.csdnimg.cn/img_convert/d51b5e57179e78e09b633aeb88a35ea5.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>开篇的时候也有讲，首先，能想到的就是做主从，这样就算主宕机了，从节点也能马上接替主节点的位置。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141735392-1050303803.png"><img src="https://img-blog.csdnimg.cn/img_convert/8b06d4f3cc1e17fcc98109b8944ab0d7.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>我们现在已经做成主从结构了，那到底是谁来负责主从之间的切换？</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141802667-83409709.png"><img src="https://img-blog.csdnimg.cn/img_convert/b45cb95f1c8f6bc4b3fe9b9fc944fd61.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>就是它，Sentinel，中文名叫哨兵，它呢，在Redis里面主要负责监控主从节点，如果主节点挂了，就会把从拉起来。但是哨兵本身也存在单点问题，所以它也需要做集群。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141826584-1854393400.png"><img src="https://img-blog.csdnimg.cn/img_convert/a31709270623f45d43669ac24e073fe0.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>那么问题来了，哨兵是如何做主从切换呢？来看下哨兵的运行机制。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141909126-1869770004.png"><img src="https://img-blog.csdnimg.cn/img_convert/d4e170ac091f1784f0a8e3e6482be2d6.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>假如有三个哨兵和一主两从的节点，下面是一主多从，哨兵之间会互相监测运行状态，并且会交换一下节点监测的状态，同时哨兵也会监测主从节点的状态。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803141937106-298777220.png"><img src="https://img-blog.csdnimg.cn/img_convert/7a7908b6ec4ab2b779920cc85ce36a57.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>如果检测到某一个节点没有正常回复，并且距离上次正常回复的时间超过了某个阈值，那么就认为该节点为主观下线。</p>
+<p>这个时候其他哨兵也会来监测该节点是不是真的主观下线，如果有足够多数量的哨兵都认为它确实主观下线了，那么它就会被标记为客观下线，这个时候哨兵会找下线节点的从节点，然后与其他哨兵协商出一个从节点做主节点，并将剩余的从节点指向新的主节点。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142023904-1656961626.png"><img src="https://img-blog.csdnimg.cn/img_convert/7073627e3030fc933542ccd818e123c0.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>关于主从节点的切换有两个环节，第一个是哨兵要选举出领头人来负责下线机器的故障转移，第二是从Slave中选出主节点，领头人的选举规则是谁发现客观下线谁就可以马上要求其他哨兵认自己做老大，其他哨兵会无条件接受第一个发过来的人，并告知老大，如果超过一半人都同意了，那他老大的位置就坐实了。</p>
+<p>关于从节点选举，一共有四个因素影响选举的结果，分别是断开连接时长、优先级排序、复制数量、进程id，如果连接断开的比较久，超过了某个阈值，就直接失去了选举权，如果拥有选举权，那就看谁的优先级高，这个在配置文件里可以设置，数值越小优先级越高，如果优先级相同，就看谁从master中复制的数据最多，选最多的那个，如果复制数量也相同，就选择进程id最小的那个。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142133873-2076188484.png"><img src="https://img-blog.csdnimg.cn/img_convert/342288e247a5c1c1ec0e0648b56e4b1f.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>现在继续回过来，刚才讲痛点的时候说了，如果有存储海量数据的需求，同步会非常缓慢，所以我们应该把一个主从结构变成多个，把存储的key分摊到各个主从结构中来分担压力。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142157383-1209357826.png"><img src="https://img-blog.csdnimg.cn/img_convert/613a9fb4039d4c9108460c36cd566396.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>就像这样，代理通过一种算法把要操作的key经过计算后分配到各个组中，这个过程叫做分片，我们来看一下分片的实现原理。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142215915-1873691463.png"><img src="https://img-blog.csdnimg.cn/img_convert/990c09e16ba4cd360b775dbd24bea91c.png" srcset="/img/loading.gif" lazyload></a></p>
+<h4 id="分片算法"><a href="#分片算法" class="headerlink" title="分片算法#"></a>分片算法<a target="_blank" rel="noopener" href="https://www.cnblogs.com/pingyeaa/p/11294773.html#3119962178">#</a></h4><p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142316372-1255776349.png"><img src="https://img-blog.csdnimg.cn/img_convert/951d430eb1c33b74ba99018cc67655b0.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>在Codis里面，它把所有的key分为1024个槽，每一个槽位都对应了一个分组，具体槽位的分配，可以进行自定义，现在如果有一个key进来，首先要根据CRC32算法，针对key算出32位的哈希值，然后除以1024取余，然后就能算出这个KEY属于哪个槽，然后根据槽与分组的映射关系，就能去对应的分组当中处理数据了。</p>
+<p>CRC全称是循环冗余校验，主要在数据存储和通信领域保证数据正确性的校验手段，我去看了这个算法的原理，还没理解透彻，这里就先不讲了，省得误导大家。</p>
+<p>我们继续回过来，刚才所讲的槽位和分组的映射关系就保存在codis proxy当中，但是codis proxy它本身也存在单点问题，所以需要对proxy做一个集群。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142412234-301773304.png"><img src="https://img-blog.csdnimg.cn/img_convert/cf68d0878e02b2cdd1a5b45734adad5e.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>部署好集群之后，有一个问题，就是槽位的映射关系是保存在proxy里面的，不同proxy之间怎么同步映射关系？</p>
+<p>在Codis中使用的是Zookeeper来保存映射关系，由proxy上来同步配置信息，其实它支持的不止zookeeper，还有etcd和本地文件。在zookeeper中保存的数据格式就是这个样子。除了这个还会存储一些其他的信息，比如分组信息、代理信息等，感兴趣可以自己去了解一下。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142440305-245260215.png"><img src="https://img-blog.csdnimg.cn/img_convert/69ecf12069f8cee35ccbaade6d0dd0e0.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>现在还有一个问题，就是codis proxy如果出现异常怎么处理，这个可能要利用一下k8s中pod的特性，在k8s里面可以设置pod冗余的数量，k8s会严格保证启动的数量与设置一致，所以只需要一个进程监测Proxy的异常，并且把它干掉就可以了，k8s会自动拉起来一个新的proxy。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142517608-1773814847.png"><img src="https://img-blog.csdnimg.cn/img_convert/ba36eab6d57b2587355c222bec1fd128.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>codis给这个进程起名叫codis-ha，codis-ha实时监测proxy的运行状态，如果有异常就会干掉，它包含了哨兵的功能，所以豌豆荚直接把哨兵去掉了。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142546334-1563551816.png"><img src="https://img-blog.csdnimg.cn/img_convert/0b2c5c1112b25e0273d417c4f3ce1f3a.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>但是codis-ha在Codis整个架构中是没有办法直接操作代理和服务，因为所有的代理和服务的操作都要经过dashboard处理。所以部署的时候会利用k8s的亲和性将codis-ha与dashboard部署在同一个节点上。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142613948-1526515846.png"><img src="https://img-blog.csdnimg.cn/img_convert/ac12eb13e37f6278dd99e8f72aa714a0.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>除了这些，codis自己开发了集群管理界面，集群管理可以通过界面化的方式更方便的管理集群，这个模块叫codis-fe，我们可以看一下这个界面。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142713278-1555622317.png"><img src="https://img-blog.csdnimg.cn/img_convert/5427c8fa82932768fcc479eb21d6c269.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>最后就是redis客户端了，这个没什么好讲的，客户端是直接通过代理来访问后端服务的。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142738274-34924996.png"><img src="https://img-blog.csdnimg.cn/img_convert/95a8c93bdb5532713108ab80c2b56477.png" srcset="/img/loading.gif" lazyload></a></p>
+<h3 id="Redis-Cluster原理"><a href="#Redis-Cluster原理" class="headerlink" title="Redis Cluster原理#"></a>Redis Cluster原理<a target="_blank" rel="noopener" href="https://www.cnblogs.com/pingyeaa/p/11294773.html#2060064721">#</a></h3><p>下面来看一下redis cluster的原理，它和codis不太一样，Codis它是通过代理分片的，但是Redis Cluster是去中心化的没有代理，所以只能通过客户端分片，它分片的槽数跟Codis不太一样，Codis是1024个，而Redis cluster有16384个，槽跟节点的映射关系保存在每个节点上，每个节点每秒钟会ping十次其他几个最久没通信的节点，其他节点也是一样的原理互相PING ，PING的时候一个是判断其他节点有没有问题，另一个是顺便交换一下当前集群的节点信息、包括槽与节点映射的关系等。客户端操作key的时候先通过分片算法算出所属的槽，然后随机找一个服务端请求。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142840591-167003063.png"><img src="https://img-blog.csdnimg.cn/img_convert/7e1bc48c8a96881ab6d515d9adec1afd.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>但是可能这个槽并不归随机找的这个节点管，节点如果发现不归自己管，就会返回一个MOVED ERROR通知，引导客户端去正确的节点访问，这个时候客户端就会去正确的节点操作数据。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142931535-1671539941.png"><img src="https://img-blog.csdnimg.cn/img_convert/6b34dd05b2a7fb8d2c4e15908266472d.png" srcset="/img/loading.gif" lazyload></a></p>
+<p>这是RedisCluster大概的原理，下面看一下Codis跟RedisCluster简要的区别。</p>
+<p><a target="_blank" rel="noopener" href="https://img2018.cnblogs.com/blog/1471773/201908/1471773-20190803142957436-474723415.png"><img src="https://img-blog.csdnimg.cn/img_convert/b6a006f88dcef7f2cf1b07f9405f58cd.png" srcset="/img/loading.gif" lazyload></a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%AC%E8%BD%BD/" class="print-no-link">#转载</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Codis与RedisCluster的原理详解</div>
+      <div>http://example.com/2021/03/13/Codis与RedisCluster的原理详解/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Way Leung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年3月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/05/12/@Async%20%E5%AF%BC%E8%87%B4%E8%AF%A5Bean%E5%9C%A8%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E6%97%B6%E5%90%AF%E5%8A%A8%E6%8A%A5%E9%94%99/" title="Async注解 导致该Bean在循环依赖时启动报错">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Async注解 导致该Bean在循环依赖时启动报错</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/01/19/Spring%20%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%92%8C%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/" title="Spring 循环依赖和三级缓存">
+                        <span class="hidden-mobile">Spring 循环依赖和三级缓存</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

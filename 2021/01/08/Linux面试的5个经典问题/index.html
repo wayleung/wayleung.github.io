@@ -1,0 +1,782 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Way Leung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1.CPU负载和CPU利用率的区别是什么？首先，我们可以通过uptime，w或者top命令看到CPU的平均负载。   Load Average ：负载的3个数字，比如上图的4.86，5.28，5.00，分别代表系统在过去的1分钟，5分钟，15分钟内的系统平均负载。他代表的是当前系统正在运行的和处于等待运行的进程数之和。也指的是处于可运行状态和不可中断状态的平均进程数。 如果单核CPU的话，负载达到">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux面试的5个经典问题">
+<meta property="og:url" content="http://example.com/2021/01/08/Linux%E9%9D%A2%E8%AF%95%E7%9A%845%E4%B8%AA%E7%BB%8F%E5%85%B8%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="小梁的个人博客">
+<meta property="og:description" content="1.CPU负载和CPU利用率的区别是什么？首先，我们可以通过uptime，w或者top命令看到CPU的平均负载。   Load Average ：负载的3个数字，比如上图的4.86，5.28，5.00，分别代表系统在过去的1分钟，5分钟，15分钟内的系统平均负载。他代表的是当前系统正在运行的和处于等待运行的进程数之和。也指的是处于可运行状态和不可中断状态的平均进程数。 如果单核CPU的话，负载达到">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaHZ3UklsSmQ4cFNmU2I2QUF4dzFrVWhGUEo4S2liUmlhNEt4a0hXSHdCUXZUT2todGliMzlLeGZ2Zy82NDA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaERZNnlJTkJZaEV5Y3dsWldyOFh4R3FoaWFTNW1velZNVlozeXE0MkgyZEF5WldnUVh4a0ZVcWcvNjQw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaFN1UGhHR0JNYWg5Rlc5WjZiSTFsenNId0RDSmlhZXBWSWljaWMzSnNENkdYbDI4WkJjSlhSMjJBZy82NDA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaE9lbUFGWlNJaWFhc2UwYkdUdDRNdDhBWFQ0aEplYzltMjZlUWJ2eHJNNlcxbEkwUWdQQWdsd0EvNjQw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaFp0cVdLVlM4aWFkMnJZbzFZajNCWjFwa3NXcGtnZHBpY1ltczI0cURuQkxYRnpKZU9QRlJKaWNpYWcvNjQw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaElNNVA5R1NlRnFRM2NJZ0RpYU5OUE1wYk1VNXdKWFpCdzRmaWFhVDdDR1NwREsxbnR4OU9VWGZnLzY0MA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaHVSc2liVlh4VzlTUmZ5cXBRM0JpYndCUVB0Z3NDQmZEQWFlWGRZY1ZlUVRVanVZWUlvY2RxTWVBLzY0MA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaFJzOVpLWDFVQXV1QUJWSGVxV2lhTUpzRE9VakdJalV5SG5KQWJMRWljV2dENGlhV1FZYWlia2xiYWcvNjQw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaEtPQ2szcHNqTkg0bE9NeEp3S21QNTAzM0I4aWNwc2h6a1F2ZHpEb3R0YVZoMjhrY1o2ekpseHcvNjQw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaGdQSzlybVo1bnBMQXRnbUlpYTRUTGpGZEdWclNYQUFaZU1uM201UkU4dEtNTG45V0JuVTlDWncvNjQw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaGliWFhvY0NTQnFpYzc3c2RjU1hCNG9TZGprMEs1VjV6aDVOajFZbkJsajk4OHlOVjI2aGFzb0xBLzY0MA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaHNLekpmZ0VqUHNXMXpxbm50eGQ1NUpyRDZDaWFpYXRmQjZjdXdaSE5BZFp2aWN0NGdoUFJEMnZMQS82NDA?x-oss-process=image/format,png">
+<meta property="article:published_time" content="2021-01-08T08:14:00.000Z">
+<meta property="article:modified_time" content="2024-01-07T14:12:24.601Z">
+<meta property="article:author" content="Way Leung">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaHZ3UklsSmQ4cFNmU2I2QUF4dzFrVWhGUEo4S2liUmlhNEt4a0hXSHdCUXZUT2todGliMzlLeGZ2Zy82NDA?x-oss-process=image/format,png">
+  
+  
+  
+  <title>Linux面试的5个经典问题 - 小梁的个人博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","app_key":"OyBjbqUomyG2Y1ArgpK2iUlc","server_url":"https://bdcpj8k5.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="小梁的个人博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>wayleung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Linux面试的5个经典问题"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-01-08 16:14" pubdate>
+          2021年1月8日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          15 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Linux面试的5个经典问题</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h4 id="1-CPU负载和CPU利用率的区别是什么？"><a href="#1-CPU负载和CPU利用率的区别是什么？" class="headerlink" title="1.CPU负载和CPU利用率的区别是什么？"></a>1.CPU负载和CPU利用率的区别是什么？</h4><p>首先，我们可以通过<code>uptime</code>，<code>w</code>或者<code>top</code>命令看到CPU的平均负载。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaHZ3UklsSmQ4cFNmU2I2QUF4dzFrVWhGUEo4S2liUmlhNEt4a0hXSHdCUXZUT2todGliMzlLeGZ2Zy82NDA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload> <img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaERZNnlJTkJZaEV5Y3dsWldyOFh4R3FoaWFTNW1velZNVlozeXE0MkgyZEF5WldnUVh4a0ZVcWcvNjQw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p><strong>Load Average</strong> ：负载的3个数字，比如上图的4.86，5.28，5.00，分别代表系统在过去的1分钟，5分钟，15分钟内的系统平均负载。他代表的是<strong>当前系统正在运行的和处于等待运行的进程数之和</strong>。也指的是处于<strong>可运行状态</strong>和<strong>不可中断状态</strong>的平均进程数。</p>
+<p>如果单核CPU的话，负载达到1就代表CPU已经达到满负荷的状态了，超过1，后面的进行就需要排队等待处理了。</p>
+<p>如果是是多核多CPU的话，假设现在服务器是2个CPU，每个CPU2个核，那么总负载不超过4都没什么问题。</p>
+<p>怎么查看CPU有多少核呢？</p>
+<p>通过命令<code>cat /proc/cpuinfo | grep &quot;model name&quot;</code>查看CPU的情况。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaFN1UGhHR0JNYWg5Rlc5WjZiSTFsenNId0RDSmlhZXBWSWljaWMzSnNENkdYbDI4WkJjSlhSMjJBZy82NDA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>通过<code>cat /proc/cpuinfo | grep &quot;cpu cores&quot;</code>查看CPU的核数</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaE9lbUFGWlNJaWFhc2UwYkdUdDRNdDhBWFQ0aEplYzltMjZlUWJ2eHJNNlcxbEkwUWdQQWdsd0EvNjQw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p><strong>CPU 利用率</strong>：和负载不同，CPU利用率指的是当前<strong>正在运行</strong>的进程实时占用CPU的百分比，它是对一段时间内CPU使用状况的统计。</p>
+<p>我举个栗子????：</p>
+<p>假设你们公司厕所有1个坑位，有一个人占了坑位，这时候负载就是1，如果还有一个人在排队，那么负载就是2。</p>
+<p>如果在1个小时内，A上厕所花了10分钟，B上厕所花了20分钟，剩下30分钟厕所都没人使用，那么这一个小时内利用率就是50%。</p>
+<h4 id="2-那如果CPU负载很高，利用率却很低该怎么办？"><a href="#2-那如果CPU负载很高，利用率却很低该怎么办？" class="headerlink" title="2.那如果CPU负载很高，利用率却很低该怎么办？"></a>2.那如果CPU负载很高，利用率却很低该怎么办？</h4><p>CPU负载很高，利用率却很低，说明处于等待状态的任务很多，负载越高，代表可能很多僵死的进程。通常这种情况是IO密集型的任务，大量请求在请求相同的IO，导致任务队列堆积。</p>
+<p>同样，可以先通过<code>top</code>命令观察(截图只是示意，不代表真实情况)，假设发现现在确实是高负载低使用率。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaFp0cVdLVlM4aWFkMnJZbzFZajNCWjFwa3NXcGtnZHBpY1ltczI0cURuQkxYRnpKZU9QRlJKaWNpYWcvNjQw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>然后，再通过命令<code>ps -axjf</code>查看是否存在状态为<code>D+</code>状态的进程，这个状态指的就是不可中断的睡眠状态的进程。处于这个状态的进程无法终止，也无法自行退出，只能通过恢复其依赖的资源或者重启系统来解决。(对不起，我截不到D+的状态)</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaElNNVA5R1NlRnFRM2NJZ0RpYU5OUE1wYk1VNXdKWFpCdzRmaWFhVDdDR1NwREsxbnR4OU9VWGZnLzY0MA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<h4 id="3-那如果负载很低，利用率却很高呢？"><a href="#3-那如果负载很低，利用率却很高呢？" class="headerlink" title="3.那如果负载很低，利用率却很高呢？"></a>3.那如果负载很低，利用率却很高呢？</h4><p>如果你的公司只有一个厕所，外面没人排队，却有一个人在里面上了大半个小时，这说明什么？</p>
+<p>两种可能：他没带纸，或者一些奇怪的事情发生了？</p>
+<p>这表示CPU的任务并不多，但是任务执行的时间很长，大概率就是你写的代码本身有问题，通常是计算密集型任务，生成了大量耗时短的计算任务。</p>
+<p>怎么排查？直接<code>top</code>命令找到使用率最高的任务，定位到去看看就行了。如果代码没有问题，那么过段时间CPU使用率就会下降的。</p>
+<h4 id="4-那如果CPU使用率达到100-呢？怎么排查？"><a href="#4-那如果CPU使用率达到100-呢？怎么排查？" class="headerlink" title="4.那如果CPU使用率达到100%呢？怎么排查？"></a>4.那如果CPU使用率达到100%呢？怎么排查？</h4><ol>
+<li>通过<code>top</code>找到占用率高的进程。</li>
+</ol>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaHVSc2liVlh4VzlTUmZ5cXBRM0JpYndCUVB0Z3NDQmZEQWFlWGRZY1ZlUVRVanVZWUlvY2RxTWVBLzY0MA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<ol>
+<li>通过<code>top -Hp pid</code>找到占用CPU高的线程ID。这里找到958的线程ID</li>
+</ol>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaFJzOVpLWDFVQXV1QUJWSGVxV2lhTUpzRE9VakdJalV5SG5KQWJMRWljV2dENGlhV1FZYWlia2xiYWcvNjQw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<ol>
+<li>再把线程ID转化为16进制，<code>printf &quot;0x%x\n&quot; 958</code>，得到线程ID<code>0x3be</code></li>
+</ol>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaEtPQ2szcHNqTkg0bE9NeEp3S21QNTAzM0I4aWNwc2h6a1F2ZHpEb3R0YVZoMjhrY1o2ekpseHcvNjQw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<ol>
+<li>通过命令<code>jstack 163 | grep &#39;0x3be&#39; -C5 --color</code> 或者 <code>jstack 163|vim +/0x3be -</code> 找到有问题的代码</li>
+</ol>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaGdQSzlybVo1bnBMQXRnbUlpYTRUTGpGZEdWclNYQUFaZU1uM201UkU4dEtNTG45V0JuVTlDWncvNjQw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<h4 id="5-说说常见的Linux命令吧？"><a href="#5-说说常见的Linux命令吧？" class="headerlink" title="5.说说常见的Linux命令吧？"></a>5.说说常见的Linux命令吧？</h4><p><strong>常用的文件、目录命令</strong></p>
+<p><code>ls</code>：用户查看目录下的文件，<code>ls -a</code>可以用来查看隐藏文件，<code>ls -l</code>可以用于查看文件的详细信息，包括权限、大小、所有者等信息。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaGliWFhvY0NTQnFpYzc3c2RjU1hCNG9TZGprMEs1VjV6aDVOajFZbkJsajk4OHlOVjI2aGFzb0xBLzY0MA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p><code>touch</code>：用于创建文件。如果文件不存在，则创建一个新的文件，如果文件已存在，则会修改文件的时间戳。</p>
+<p><code>cat</code>：cat是英文<code>concatenate</code>的缩写，用于查看文件内容。使用<code>cat</code>查看文件的话，不管文件的内容有多少，都会一次性显示，所以他不适合查看太大的文件。</p>
+<p><code>more</code>：more和cat有点区别，more用于分屏显示文件内容。可以用<code>空格键</code>向下翻页，<code>b</code>键向上翻页</p>
+<p><code>less</code>：和more类似，less用于分行显示</p>
+<p><code>tail</code>：可能是平时用的最多的命令了，查看日志文件基本靠他了。一般用户<code>tail -fn 100 xx.log</code>查看最后的100行内容</p>
+<p><strong>常用的权限命令</strong></p>
+<p><code>chmod</code>：修改权限命令。一般用<code>+</code>号添加权限，<code>-</code>号删除权限，<code>x</code>代表执行权限，<code>r</code>代表读取权限，<code>w</code>代表写入权限，常见写法比如<code>chmod +x 文件名</code> 添加执行权限。</p>
+<p>还有另外一种写法，使用数字来授权，因为<code>r</code>=4，<code>w</code>=2，<code>x</code>=1，平时执行命令<code>chmod 777 文件名</code>这就是最高权限了。</p>
+<p>第一个数字7&#x3D;4+2+1代表着所有者的权限，第二个数字7代表所属组的权限，第三个数字代表其他人的权限。</p>
+<p>常见的权限数字还有644，所有者有读写权限，其他人只有只读权限，755代表其他人有只读和执行权限。</p>
+<p><code>chown</code>：用于修改文件和目录的所有者和所属组。一般用法<code>chown user 文件</code>用于修改文件所有者，<code>chown user:user 文件</code>修改文件所有者和组，冒号前面是所有者，后面是组。</p>
+<p><strong>常用的压缩命令</strong></p>
+<p><code>zip</code>：压缩zip文件命令，比如<code>zip test.zip 文件</code>可以把文件压缩成zip文件，如果压缩目录的话则需添加<code>-r</code>选项。</p>
+<p><code>unzip</code>：与zip对应，解压zip文件命令。<code>unzip xxx.zip</code>直接解压，还可以通过<code>-d</code>选项指定解压目录。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9pYkJNVnVEZmtaVW12UEZ2UTN5VkwxdFFZR2liSGljWUNsaHNLekpmZ0VqUHNXMXpxbm50eGQ1NUpyRDZDaWFpYXRmQjZjdXdaSE5BZFp2aWN0NGdoUFJEMnZMQS82NDA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p><code>gzip</code>：用于压缩.gz后缀文件，gzip命令不能打包目录。需要注意的是直接使用<code>gzip 文件名</code>源文件会消失，如果要保留源文件，可以使用<code>gzip -c 文件名 &gt; xx.gz</code>，解压缩直接使用<code>gzip -d xx.gz</code></p>
+<p><code>tar</code>：tar常用几个选项，<code>-x</code>解打包，<code>-c</code>打包，<code>-f</code>指定压缩包文件名，<code>-v</code>显示打包文件过程，一般常用<code>tar -cvf xx.tar 文件</code>来打包，解压则使用<code>tar -xvf xx.tar</code>。</p>
+<p>Linux的打包和压缩是分开的操作，如果要打包并且压缩的话，按照前面的做法必须先用tar打包，然后再用gzip压缩。当然，还有更好的做法就是<code>-z</code>命令，打包并且压缩。</p>
+<p>使用命令<code>tar -zcvf xx.tar.gz 文件</code>来打包压缩，使用命令<code>tar -zxvf xx.tar.gz</code>来解压缩</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%AC%E8%BD%BD/" class="print-no-link">#转载</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Linux面试的5个经典问题</div>
+      <div>http://example.com/2021/01/08/Linux面试的5个经典问题/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Way Leung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年1月8日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/01/19/Spring%20%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E5%92%8C%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98/" title="Spring 循环依赖和三级缓存">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Spring 循环依赖和三级缓存</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/01/05/SpringBoot%E9%9B%86%E6%88%90kafka%E5%85%A8%E9%9D%A2%E5%AE%9E%E6%88%98/" title="SpringBoot集成kafka全面实战">
+                        <span class="hidden-mobile">SpringBoot集成kafka全面实战</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

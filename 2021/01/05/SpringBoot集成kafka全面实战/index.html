@@ -1,0 +1,1419 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Way Leung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="一、生产者实践  普通生产者  带回调的生产者  自定义分区器  kafka事务提交   二、消费者实践  简单消费  指定topic、partition、offset消费  批量消费  监听异常处理器  消息过滤器  消息转发  定时启动&#x2F;停止监听器   一、前戏1、在项目中连接kafka，因为是外网，首先要开放kafka配置文件中的如下配置（其中IP为公网IP）， 1advertis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringBoot集成kafka全面实战">
+<meta property="og:url" content="http://example.com/2021/01/05/SpringBoot%E9%9B%86%E6%88%90kafka%E5%85%A8%E9%9D%A2%E5%AE%9E%E6%88%98/index.html">
+<meta property="og:site_name" content="小梁的个人博客">
+<meta property="og:description" content="一、生产者实践  普通生产者  带回调的生产者  自定义分区器  kafka事务提交   二、消费者实践  简单消费  指定topic、partition、offset消费  批量消费  监听异常处理器  消息过滤器  消息转发  定时启动&#x2F;停止监听器   一、前戏1、在项目中连接kafka，因为是外网，首先要开放kafka配置文件中的如下配置（其中IP为公网IP）， 1advertis">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djNhdVV6azR4U0JPdTZneGljMk1oSzV0bWdSNHd3NWQzUG9EeERCS2tUUGNDQjdwTTJYbzBTdzZRLzY0MA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djNwc09pYzY3aWNYV2lid0k0a0ptV2VpYURpY01OVTB6QUxyR3dGVWd2aWI2c09pYjRtOU5zRllTeEMxcmdBLzY0MA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djNzaWJWNFpVUzNZQjJEQkVSc01PM1pZaG9RNjlCQmlidU1scTNpY1QwYm40bm9wNGliWWlhODNXZE9wQS82NDA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djNBV1hkQ1ppYTkzR1VmZjBpYnBUcmJpY0o2cHZhbEFXMUJTdmtkR2FhR0lNWmljaWFpYTdPbXJhZFZxOXcvNjQw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djMySE1QbzdtOFlRQzZsVTVwT21mWmNTREtobTR0cUtMVzQzVXNUOTQ2aWM1NXhUQ2VNdlVXbmpnLzY0MA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djN1Njg0cXJabkl2aWFWUmZIOU0waWJkUEdLaHJCdW5kV2ljaWJpYW5rbVd1U2lhUzIwWEg3aWJXMWdPSmdRLzY0MA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djN2dnhZc1lhN2lic2xnbGtaSmE1WWdaMFE1eU8yZ0c5TVhKQlJiSXB5ZUNQeUd2S0tyZXR5NFZBLzY0MA?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djN6QXY5UGRkaWJ6bmczQ3U1QTNDOTVva1dpY2RaZ21tUU0waWFYVGxxeTJaM0Zjd0dsUFk3UGFTWVEvNjQw?x-oss-process=image/format,png">
+<meta property="article:published_time" content="2021-01-05T09:18:05.000Z">
+<meta property="article:modified_time" content="2024-01-07T10:21:24.969Z">
+<meta property="article:author" content="Way Leung">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djNhdVV6azR4U0JPdTZneGljMk1oSzV0bWdSNHd3NWQzUG9EeERCS2tUUGNDQjdwTTJYbzBTdzZRLzY0MA?x-oss-process=image/format,png">
+  
+  
+  
+  <title>SpringBoot集成kafka全面实战 - 小梁的个人博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","app_key":"OyBjbqUomyG2Y1ArgpK2iUlc","server_url":"https://bdcpj8k5.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="小梁的个人博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>wayleung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="SpringBoot集成kafka全面实战"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-01-05 17:18" pubdate>
+          2021年1月5日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          29 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">SpringBoot集成kafka全面实战</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>一、生产者实践</p>
+<ul>
+<li><p>普通生产者</p>
+</li>
+<li><p>带回调的生产者</p>
+</li>
+<li><p>自定义分区器</p>
+</li>
+<li><p>kafka事务提交</p>
+</li>
+</ul>
+<p>二、消费者实践</p>
+<ul>
+<li><p>简单消费</p>
+</li>
+<li><p>指定topic、partition、offset消费</p>
+</li>
+<li><p>批量消费</p>
+</li>
+<li><p>监听异常处理器</p>
+</li>
+<li><p>消息过滤器</p>
+</li>
+<li><p>消息转发</p>
+</li>
+<li><p>定时启动&#x2F;停止监听器</p>
+</li>
+</ul>
+<h3 id="一、前戏"><a href="#一、前戏" class="headerlink" title="一、前戏"></a>一、前戏</h3><p>1、在项目中连接kafka，因为是外网，首先要开放kafka配置文件中的如下配置（其中IP为公网IP），</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs auto">advertised.listeners=PLAINTEXT://112.126.74.249:9092<br></code></pre></td></tr></table></figure>
+
+<p>2、在开始前我们先创建两个topic：topic1、topic2，其分区和副本数都设置为2，用来测试，</p>
+<ol>
+<li><p><code>[root@iZ2zegzlkedbo3e64vkbefZ ~]# cd /usr/local/kafka-cluster/kafka1/bin/</code></p>
+</li>
+<li><p><code>[root@iZ2zegzlkedbo3e64vkbefZ bin]# ./kafka-topics.sh --create --zookeeper 172.17.80.219:2181 --replication-factor 2 --partitions 2 --topic topic1</code></p>
+</li>
+<li><p><code>Created topic topic1.</code></p>
+</li>
+<li><p><code>[root@iZ2zegzlkedbo3e64vkbefZ bin]# ./kafka-topics.sh --create --zookeeper 172.17.80.219:2181 --replication-factor 2 --partitions 2 --topic topic2</code></p>
+</li>
+<li><p><code>Created topic topic2.</code></p>
+</li>
+</ol>
+<p>当然我们也可以不手动创建topic，在执行代码kafkaTemplate.send(“topic1”, normalMessage)发送消息时，kafka会帮我们自动完成topic的创建工作，但这种情况下创建的topic默认只有一个分区，分区也没有副本。所以，我们可以在项目中新建一个配置类专门用来初始化topic，如下，</p>
+<ol>
+<li><p><code>@Configuration</code></p>
+</li>
+<li><p><code>public class KafkaInitialConfiguration &#123;</code></p>
+</li>
+<li><p><code>// 创建一个名为testtopic的Topic并设置分区数为8，分区副本数为2</code></p>
+</li>
+<li><p><code>@Bean</code></p>
+</li>
+<li><p><code>public NewTopic initialTopic() &#123;</code></p>
+</li>
+<li><p><code>return new NewTopic(&quot;testtopic&quot;,8, (short) 2 );</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 如果要修改分区数，只需修改配置值重启项目即可</code></p>
+</li>
+<li><p><code>// 修改分区数并不会导致数据的丢失，但是分区数只能增大不能减小</code></p>
+</li>
+<li><p><code>@Bean</code></p>
+</li>
+<li><p><code>public NewTopic updateTopic() &#123;</code></p>
+</li>
+<li><p><code>return new NewTopic(&quot;testtopic&quot;,10, (short) 2 );</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p>3、新建SpringBoot项目</p>
+<p>① 引入pom依赖</p>
+<ol>
+<li><p><code>&lt;dependency&gt;</code></p>
+</li>
+<li><p><code>&lt;groupId&gt;org.springframework.kafka&lt;/groupId&gt;</code></p>
+</li>
+<li><p><code>&lt;artifactId&gt;spring-kafka&lt;/artifactId&gt;</code></p>
+</li>
+<li><p><code>&lt;/dependency&gt;</code></p>
+</li>
+</ol>
+<p>② application.propertise配置（本文用到的配置项这里全列了出来）</p>
+<ol>
+<li><p><code>###########【Kafka集群】###########</code></p>
+</li>
+<li><p><code>spring.kafka.bootstrap-servers=112.126.74.249:9092,112.126.74.249:9093</code></p>
+</li>
+<li><p><code>###########【初始化生产者配置】###########</code></p>
+</li>
+<li><p><code># 重试次数</code></p>
+</li>
+<li><p><code>spring.kafka.producer.retries=0</code></p>
+</li>
+<li><p><code># 应答级别:多少个分区副本备份完成时向生产者发送ack确认(可选0、1、all/-1)</code></p>
+</li>
+<li><p><code>spring.kafka.producer.acks=1</code></p>
+</li>
+<li><p><code># 批量大小</code></p>
+</li>
+<li><p><code>spring.kafka.producer.batch-size=16384</code></p>
+</li>
+<li><p><code># 提交延时</code></p>
+</li>
+<li><p><code>spring.kafka.producer.properties.linger.ms=0</code></p>
+</li>
+<li><p><code># 当生产端积累的消息达到batch-size或接收到消息linger.ms后,生产者就会将消息提交给kafka</code></p>
+</li>
+<li><p><code># linger.ms为0表示每接收到一条消息就提交给kafka,这时候batch-size其实就没用了</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code># 生产端缓冲区大小</code></p>
+</li>
+<li><p><code>spring.kafka.producer.buffer-memory = 33554432</code></p>
+</li>
+<li><p><code># Kafka提供的序列化和反序列化类</code></p>
+</li>
+<li><p><code>spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer</code></p>
+</li>
+<li><p><code>spring.kafka.producer.value-serializer=org.apache.kafka.common.serialization.StringSerializer</code></p>
+</li>
+<li><p><code># 自定义分区器</code></p>
+</li>
+<li><p><code># spring.kafka.producer.properties.partitioner.class=com.felix.kafka.producer.CustomizePartitioner</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>###########【初始化消费者配置】###########</code></p>
+</li>
+<li><p><code># 默认的消费组ID</code></p>
+</li>
+<li><p><code>spring.kafka.consumer.properties.group.id=defaultConsumerGroup</code></p>
+</li>
+<li><p><code># 是否自动提交offset</code></p>
+</li>
+<li><p><code>spring.kafka.consumer.enable-auto-commit=true</code></p>
+</li>
+<li><p><code># 提交offset延时(接收到消息后多久提交offset)</code></p>
+</li>
+<li><p><code>spring.kafka.consumer.auto.commit.interval.ms=1000</code></p>
+</li>
+<li><p><code># 当kafka中没有初始offset或offset超出范围时将自动重置offset</code></p>
+</li>
+<li><p><code># earliest:重置为分区中最小的offset;</code></p>
+</li>
+<li><p><code># latest:重置为分区中最新的offset(消费分区中新产生的数据);</code></p>
+</li>
+<li><p><code># none:只要有一个分区不存在已提交的offset,就抛出异常;</code></p>
+</li>
+<li><p><code>spring.kafka.consumer.auto-offset-reset=latest</code></p>
+</li>
+<li><p><code># 消费会话超时时间(超过这个时间consumer没有发送心跳,就会触发rebalance操作)</code></p>
+</li>
+<li><p><code>spring.kafka.consumer.properties.session.timeout.ms=120000</code></p>
+</li>
+<li><p><code># 消费请求超时时间</code></p>
+</li>
+<li><p><code>spring.kafka.consumer.properties.request.timeout.ms=180000</code></p>
+</li>
+<li><p><code># Kafka提供的序列化和反序列化类</code></p>
+</li>
+<li><p><code>spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer</code></p>
+</li>
+<li><p><code>spring.kafka.consumer.value-deserializer=org.apache.kafka.common.serialization.StringDeserializer</code></p>
+</li>
+<li><p><code># 消费端监听的topic不存在时，项目启动会报错(关掉)</code></p>
+</li>
+<li><p><code>spring.kafka.listener.missing-topics-fatal=false</code></p>
+</li>
+<li><p><code># 设置批量消费</code></p>
+</li>
+<li><p><code># spring.kafka.listener.type=batch</code></p>
+</li>
+<li><p><code># 批量消费每次最多消费多少条消息</code></p>
+</li>
+<li><p><code># spring.kafka.consumer.max-poll-records=50</code></p>
+</li>
+</ol>
+<h3 id="二、Hello-Kafka"><a href="#二、Hello-Kafka" class="headerlink" title="二、Hello Kafka"></a>二、Hello Kafka</h3><p>1、简单生产者</p>
+<ol>
+<li><p><code>@RestController</code></p>
+</li>
+<li><p><code>public class KafkaProducer &#123;</code></p>
+</li>
+<li><p><code>@Autowired</code></p>
+</li>
+<li><p><code>private KafkaTemplate&lt;String, Object&gt; kafkaTemplate;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 发送消息</code></p>
+</li>
+<li><p><code>@GetMapping(&quot;/kafka/normal/&#123;message&#125;&quot;)</code></p>
+</li>
+<li><p><code>public void sendMessage1(@PathVariable(&quot;message&quot;) String normalMessage) &#123;</code></p>
+</li>
+<li><p><code>kafkaTemplate.send(&quot;topic1&quot;, normalMessage);</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p> 2、简单消费</p>
+<ol>
+<li><p><code>@Component</code></p>
+</li>
+<li><p><code>public class KafkaConsumer &#123;</code></p>
+</li>
+<li><p><code>// 消费监听</code></p>
+</li>
+<li><p><code>@KafkaListener(topics = &#123;&quot;topic1&quot;&#125;)</code></p>
+</li>
+<li><p><code>public void onMessage1(ConsumerRecord&lt;?, ?&gt; record)&#123;</code></p>
+</li>
+<li><p><code>// 消费的哪个topic、partition的消息,打印出消息内容</code></p>
+</li>
+<li><p><code>System.out.println(&quot;简单消费：&quot;+record.topic()+&quot;-&quot;+record.partition()+&quot;-&quot;+record.value());</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p>上面示例创建了一个生产者，发送消息到topic1，消费者监听topic1消费消息。监听器用@KafkaListener注解，topics表示监听的topic，支持同时监听多个，用英文逗号分隔。启动项目，postman调接口触发生产者发送消息，</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djNhdVV6azR4U0JPdTZneGljMk1oSzV0bWdSNHd3NWQzUG9EeERCS2tUUGNDQjdwTTJYbzBTdzZRLzY0MA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>可以看到监听器消费成功，</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djNwc09pYzY3aWNYV2lid0k0a0ptV2VpYURpY01OVTB6QUxyR3dGVWd2aWI2c09pYjRtOU5zRllTeEMxcmdBLzY0MA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="三、生产者"><a href="#三、生产者" class="headerlink" title="三、生产者"></a>三、生产者</h3><p>1、带回调的生产者</p>
+<p>kafkaTemplate提供了一个回调方法addCallback，我们可以在回调方法中监控消息是否发送成功 或 失败时做补偿处理，有两种写法，</p>
+<ol>
+<li><p><code>@GetMapping(&quot;/kafka/callbackOne/&#123;message&#125;&quot;)</code></p>
+</li>
+<li><p><code>public void sendMessage2(@PathVariable(&quot;message&quot;) String callbackMessage) &#123;</code></p>
+</li>
+<li><p><code>kafkaTemplate.send(&quot;topic1&quot;, callbackMessage).addCallback(success -&gt; &#123;</code></p>
+</li>
+<li><p><code>// 消息发送到的topic</code></p>
+</li>
+<li><p><code>String topic = success.getRecordMetadata().topic();</code></p>
+</li>
+<li><p><code>// 消息发送到的分区</code></p>
+</li>
+<li><p><code>int partition = success.getRecordMetadata().partition();</code></p>
+</li>
+<li><p><code>// 消息在分区内的offset</code></p>
+</li>
+<li><p><code>long offset = success.getRecordMetadata().offset();</code></p>
+</li>
+<li><p><code>System.out.println(&quot;发送消息成功:&quot; + topic + &quot;-&quot; + partition + &quot;-&quot; + offset);</code></p>
+</li>
+<li><p><code>&#125;, failure -&gt; &#123;</code></p>
+</li>
+<li><p><code>System.out.println(&quot;发送消息失败:&quot; + failure.getMessage());</code></p>
+</li>
+<li><p><code>&#125;);</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>@GetMapping(&quot;/kafka/callbackTwo/&#123;message&#125;&quot;)</code></p>
+</li>
+<li><p><code>public void sendMessage3(@PathVariable(&quot;message&quot;) String callbackMessage) &#123;</code></p>
+</li>
+<li><p><code>kafkaTemplate.send(&quot;topic1&quot;, callbackMessage).addCallback(new ListenableFutureCallback&lt;SendResult&lt;String, Object&gt;&gt;() &#123;</code></p>
+</li>
+<li><p><code>@Override</code></p>
+</li>
+<li><p><code>public void onFailure(Throwable ex) &#123;</code></p>
+</li>
+<li><p><code>System.out.println(&quot;发送消息失败：&quot;+ex.getMessage());</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>@Override</code></p>
+</li>
+<li><p><code>public void onSuccess(SendResult&lt;String, Object&gt; result) &#123;</code></p>
+</li>
+<li><p><code>System.out.println(&quot;发送消息成功：&quot; + result.getRecordMetadata().topic() + &quot;-&quot;</code></p>
+</li>
+<li><p><code>+ result.getRecordMetadata().partition() + &quot;-&quot; + result.getRecordMetadata().offset());</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>&#125;);</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p>2、自定义分区器</p>
+<p>我们知道，kafka中每个topic被划分为多个分区，那么生产者将消息发送到topic时，具体追加到哪个分区呢？这就是所谓的分区策略，Kafka 为我们提供了默认的分区策略，同时它也支持自定义分区策略。其路由机制为：</p>
+<p>① 若发送消息时指定了分区（即自定义分区策略），则直接将消息append到指定分区；</p>
+<p>② 若发送消息时未指定 patition，但指定了 key（kafka允许为每条消息设置一个key），则对key值进行hash计算，根据计算结果路由到指定分区，这种情况下可以保证同一个 Key 的所有消息都进入到相同的分区；</p>
+<p>③  patition 和 key 都未指定，则使用kafka默认的分区策略，轮询选出一个 patition；</p>
+<p>※ 我们来自定义一个分区策略，将消息发送到我们指定的partition，首先新建一个分区器类实现Partitioner接口，重写方法，其中partition方法的返回值就表示将消息发送到几号分区，</p>
+<ol>
+<li><p><code>public class CustomizePartitioner implements Partitioner &#123;</code></p>
+</li>
+<li><p><code>@Override</code></p>
+</li>
+<li><p><code>public int partition(String topic, Object key, byte[] keyBytes, Object value, byte[] valueBytes, Cluster cluster) &#123;</code></p>
+</li>
+<li><p><code>// 自定义分区规则(这里假设全部发到0号分区)</code></p>
+</li>
+<li><p><code>// ......</code></p>
+</li>
+<li><p><code>return 0;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>@Override</code></p>
+</li>
+<li><p><code>public void close() &#123;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>@Override</code></p>
+</li>
+<li><p><code>public void configure(Map&lt;String, ?&gt; configs) &#123;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p>在application.propertise中配置自定义分区器，配置的值就是分区器类的全路径名，</p>
+<ol>
+<li><p><code># 自定义分区器</code></p>
+</li>
+<li><p><code>spring.kafka.producer.properties.partitioner.class=com.felix.kafka.producer.CustomizePartitioner</code></p>
+</li>
+</ol>
+<p>3、kafka事务提交</p>
+<p>如果在发送消息时需要创建事务，可以使用 KafkaTemplate 的 executeInTransaction 方法来声明事务，</p>
+<ol>
+<li><p><code>@GetMapping(&quot;/kafka/transaction&quot;)</code></p>
+</li>
+<li><p><code>public void sendMessage7()&#123;</code></p>
+</li>
+<li><p><code>// 声明事务：后面报错消息不会发出去</code></p>
+</li>
+<li><p><code>kafkaTemplate.executeInTransaction(operations -&gt; &#123;</code></p>
+</li>
+<li><p><code>operations.send(&quot;topic1&quot;,&quot;test executeInTransaction&quot;);</code></p>
+</li>
+<li><p><code>throw new RuntimeException(&quot;fail&quot;);</code></p>
+</li>
+<li><p><code>&#125;);</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 不声明事务：后面报错但前面消息已经发送成功了</code></p>
+</li>
+<li><p><code>kafkaTemplate.send(&quot;topic1&quot;,&quot;test executeInTransaction&quot;);</code></p>
+</li>
+<li><p><code>throw new RuntimeException(&quot;fail&quot;);</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<h3 id="四、消费者"><a href="#四、消费者" class="headerlink" title="四、消费者"></a>四、消费者</h3><p>1、指定topic、partition、offset消费</p>
+<p>前面我们在监听消费topic1的时候，监听的是topic1上所有的消息，如果我们想指定topic、指定partition、指定offset来消费呢？也很简单，@KafkaListener注解已全部为我们提供，</p>
+<ol>
+<li><p><code>/**</code></p>
+</li>
+<li><p><code>* @Title 指定topic、partition、offset消费</code></p>
+</li>
+<li><p><code>* @Description 同时监听topic1和topic2，监听topic1的0号分区、topic2的 &quot;0号和1号&quot; 分区，指向1号分区的offset初始值为8</code></p>
+</li>
+<li><p><code>* @Author long.yuan</code></p>
+</li>
+<li><p><code>* @Date 2020/3/22 13:38</code></p>
+</li>
+<li><p><code>* @Param [record]</code></p>
+</li>
+<li><p><code>* @return void</code></p>
+</li>
+<li><p><code>**/</code></p>
+</li>
+<li><p><code>@KafkaListener(id = &quot;consumer1&quot;,groupId = &quot;felix-group&quot;,topicPartitions = &#123;</code></p>
+</li>
+<li><p><code>@TopicPartition(topic = &quot;topic1&quot;, partitions = &#123; &quot;0&quot; &#125;),</code></p>
+</li>
+<li><p><code>@TopicPartition(topic = &quot;topic2&quot;, partitions = &quot;0&quot;, partitionOffsets = @PartitionOffset(partition = &quot;1&quot;, initialOffset = &quot;8&quot;))</code></p>
+</li>
+<li><p><code>&#125;)</code></p>
+</li>
+<li><p><code>public void onMessage2(ConsumerRecord&lt;?, ?&gt; record) &#123;</code></p>
+</li>
+<li><p><code>System.out.println(&quot;topic:&quot;+record.topic()+&quot;|partition:&quot;+record.partition()+&quot;|offset:&quot;+record.offset()+&quot;|value:&quot;+record.value());</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p>属性解释：</p>
+<p>① id：消费者ID；</p>
+<p>② groupId：消费组ID；</p>
+<p>③ topics：监听的topic，可监听多个；</p>
+<p>④ topicPartitions：可配置更加详细的监听信息，可指定topic、parition、offset监听。</p>
+<p>上面onMessage2监听的含义：监听topic1的0号分区，同时监听topic2的0号分区和topic2的1号分区里面offset从8开始的消息。</p>
+<p>注意：topics和topicPartitions不能同时使用；</p>
+<p>2、批量消费</p>
+<p>设置application.prpertise开启批量消费即可，</p>
+<ol>
+<li><p><code># 设置批量消费</code></p>
+</li>
+<li><p><code>spring.kafka.listener.type=batch</code></p>
+</li>
+<li><p><code># 批量消费每次最多消费多少条消息</code></p>
+</li>
+<li><p><code>spring.kafka.consumer.max-poll-records=50</code></p>
+</li>
+</ol>
+<p>接收消息时用List来接收，监听代码如下，</p>
+<ol>
+<li><p><code>@KafkaListener(id = &quot;consumer2&quot;,groupId = &quot;felix-group&quot;, topics = &quot;topic1&quot;)</code></p>
+</li>
+<li><p><code>public void onMessage3(List&lt;ConsumerRecord&lt;?, ?&gt;&gt; records) &#123;</code></p>
+</li>
+<li><p><code>System.out.println(&quot;&gt;&gt;&gt;批量消费一次，records.size()=&quot;+records.size());</code></p>
+</li>
+<li><p><code>for (ConsumerRecord&lt;?, ?&gt; record : records) &#123;</code></p>
+</li>
+<li><p><code>System.out.println(record.value());</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p>3、ConsumerAwareListenerErrorHandler 异常处理器</p>
+<p>通过异常处理器，我们可以处理consumer在消费时发生的异常。</p>
+<p>新建一个 ConsumerAwareListenerErrorHandler 类型的异常处理方法，用@Bean注入，BeanName默认就是方法名，然后我们将这个异常处理器的BeanName放到@KafkaListener注解的errorHandler属性里面，当监听抛出异常的时候，则会自动调用异常处理器，</p>
+<ol>
+<li><p><code>// 新建一个异常处理器，用@Bean注入</code></p>
+</li>
+<li><p><code>@Bean</code></p>
+</li>
+<li><p><code>public ConsumerAwareListenerErrorHandler consumerAwareErrorHandler() &#123;</code></p>
+</li>
+<li><p><code>return (message, exception, consumer) -&gt; &#123;</code></p>
+</li>
+<li><p><code>System.out.println(&quot;消费异常：&quot;+message.getPayload());</code></p>
+</li>
+<li><p><code>return null;</code></p>
+</li>
+<li><p><code>&#125;;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 将这个异常处理器的BeanName放到@KafkaListener注解的errorHandler属性里面</code></p>
+</li>
+<li><p><code>@KafkaListener(topics = &#123;&quot;topic1&quot;&#125;,errorHandler = &quot;consumerAwareErrorHandler&quot;)</code></p>
+</li>
+<li><p><code>public void onMessage4(ConsumerRecord&lt;?, ?&gt; record) throws Exception &#123;</code></p>
+</li>
+<li><p><code>throw new Exception(&quot;简单消费-模拟异常&quot;);</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 批量消费也一样，异常处理器的message.getPayload()也可以拿到各条消息的信息</code></p>
+</li>
+<li><p><code>@KafkaListener(topics = &quot;topic1&quot;,errorHandler=&quot;consumerAwareErrorHandler&quot;)</code></p>
+</li>
+<li><p><code>public void onMessage5(List&lt;ConsumerRecord&lt;?, ?&gt;&gt; records) throws Exception &#123;</code></p>
+</li>
+<li><p><code>System.out.println(&quot;批量消费一次...&quot;);</code></p>
+</li>
+<li><p><code>throw new Exception(&quot;批量消费-模拟异常&quot;);</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p>执行看一下效果，</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djNzaWJWNFpVUzNZQjJEQkVSc01PM1pZaG9RNjlCQmlidU1scTNpY1QwYm40bm9wNGliWWlhODNXZE9wQS82NDA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>4、消息过滤器</p>
+<p>消息过滤器可以在消息抵达consumer之前被拦截，在实际应用中，我们可以根据自己的业务逻辑，筛选出需要的信息再交由KafkaListener处理，不需要的消息则过滤掉。</p>
+<p>配置消息过滤只需要为 监听器工厂 配置一个RecordFilterStrategy（消息过滤策略），返回true的时候消息将会被抛弃，返回false时，消息能正常抵达监听容器。</p>
+<ol>
+<li><p><code>@Component</code></p>
+</li>
+<li><p><code>public class KafkaConsumer &#123;</code></p>
+</li>
+<li><p><code>@Autowired</code></p>
+</li>
+<li><p><code>ConsumerFactory consumerFactory;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 消息过滤器</code></p>
+</li>
+<li><p><code>@Bean</code></p>
+</li>
+<li><p><code>public ConcurrentKafkaListenerContainerFactory filterContainerFactory() &#123;</code></p>
+</li>
+<li><p><code>ConcurrentKafkaListenerContainerFactory factory = new ConcurrentKafkaListenerContainerFactory();</code></p>
+</li>
+<li><p><code>factory.setConsumerFactory(consumerFactory);</code></p>
+</li>
+<li><p><code>// 被过滤的消息将被丢弃</code></p>
+</li>
+<li><p><code>factory.setAckDiscarded(true);</code></p>
+</li>
+<li><p><code>// 消息过滤策略</code></p>
+</li>
+<li><p><code>factory.setRecordFilterStrategy(consumerRecord -&gt; &#123;</code></p>
+</li>
+<li><p><code>if (Integer.parseInt(consumerRecord.value().toString()) % 2 == 0) &#123;</code></p>
+</li>
+<li><p><code>return false;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>//返回true消息则被过滤</code></p>
+</li>
+<li><p><code>return true;</code></p>
+</li>
+<li><p><code>&#125;);</code></p>
+</li>
+<li><p><code>return factory;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 消息过滤监听</code></p>
+</li>
+<li><p><code>@KafkaListener(topics = &#123;&quot;topic1&quot;&#125;,containerFactory = &quot;filterContainerFactory&quot;)</code></p>
+</li>
+<li><p><code>public void onMessage6(ConsumerRecord&lt;?, ?&gt; record) &#123;</code></p>
+</li>
+<li><p><code>System.out.println(record.value());</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p>上面实现了一个”过滤奇数、接收偶数”的过滤策略，我们向topic1发送0-99总共100条消息，看一下监听器的消费情况，可以看到监听器只消费了偶数，</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djNBV1hkQ1ppYTkzR1VmZjBpYnBUcmJpY0o2cHZhbEFXMUJTdmtkR2FhR0lNWmljaWFpYTdPbXJhZFZxOXcvNjQw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>5、消息转发</p>
+<p>在实际开发中，我们可能有这样的需求，应用A从TopicA获取到消息，经过处理后转发到TopicB，再由应用B监听处理消息，即一个应用处理完成后将该消息转发至其他应用，完成消息的转发。</p>
+<p>在SpringBoot集成Kafka实现消息的转发也很简单，只需要通过一个@SendTo注解，被注解方法的return值即转发的消息内容，如下，</p>
+<ol>
+<li><p><code>/**</code></p>
+</li>
+<li><p><code>* @Title 消息转发</code></p>
+</li>
+<li><p><code>* @Description 从topic1接收到的消息经过处理后转发到topic2</code></p>
+</li>
+<li><p><code>* @Author long.yuan</code></p>
+</li>
+<li><p><code>* @Date 2020/3/23 22:15</code></p>
+</li>
+<li><p><code>* @Param [record]</code></p>
+</li>
+<li><p><code>* @return void</code></p>
+</li>
+<li><p><code>**/</code></p>
+</li>
+<li><p><code>@KafkaListener(topics = &#123;&quot;topic1&quot;&#125;)</code></p>
+</li>
+<li><p><code>@SendTo(&quot;topic2&quot;)</code></p>
+</li>
+<li><p><code>public String onMessage7(ConsumerRecord&lt;?, ?&gt; record) &#123;</code></p>
+</li>
+<li><p><code>return record.value()+&quot;-forward message&quot;;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p>6、定时启动、停止监听器</p>
+<p>默认情况下，当消费者项目启动的时候，监听器就开始工作，监听消费发送到指定topic的消息，那如果我们不想让监听器立即工作，想让它在我们指定的时间点开始工作，或者在我们指定的时间点停止工作，该怎么处理呢——使用KafkaListenerEndpointRegistry，下面我们就来实现：</p>
+<p>① 禁止监听器自启动；</p>
+<p>② 创建两个定时任务，一个用来在指定时间点启动定时器，另一个在指定时间点停止定时器；</p>
+<p>新建一个定时任务类，用注解@EnableScheduling声明，KafkaListenerEndpointRegistry 在SpringIO中已经被注册为Bean，直接注入，设置禁止KafkaListener自启动，</p>
+<ol>
+<li><p><code>@EnableScheduling</code></p>
+</li>
+<li><p><code>@Component</code></p>
+</li>
+<li><p><code>public class CronTimer &#123;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>/**</code></p>
+</li>
+<li><p><code>* @KafkaListener注解所标注的方法并不会在IOC容器中被注册为Bean，</code></p>
+</li>
+<li><p><code>* 而是会被注册在KafkaListenerEndpointRegistry中，</code></p>
+</li>
+<li><p><code>* 而KafkaListenerEndpointRegistry在SpringIOC中已经被注册为Bean</code></p>
+</li>
+<li><p><code>**/</code></p>
+</li>
+<li><p><code>@Autowired</code></p>
+</li>
+<li><p><code>private KafkaListenerEndpointRegistry registry;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>@Autowired</code></p>
+</li>
+<li><p><code>private ConsumerFactory consumerFactory;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 监听器容器工厂(设置禁止KafkaListener自启动)</code></p>
+</li>
+<li><p><code>@Bean</code></p>
+</li>
+<li><p><code>public ConcurrentKafkaListenerContainerFactory delayContainerFactory() &#123;</code></p>
+</li>
+<li><p><code>ConcurrentKafkaListenerContainerFactory container = new ConcurrentKafkaListenerContainerFactory();</code></p>
+</li>
+<li><p><code>container.setConsumerFactory(consumerFactory);</code></p>
+</li>
+<li><p><code>//禁止KafkaListener自启动</code></p>
+</li>
+<li><p><code>container.setAutoStartup(false);</code></p>
+</li>
+<li><p><code>return container;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 监听器</code></p>
+</li>
+<li><p><code>@KafkaListener(id=&quot;timingConsumer&quot;,topics = &quot;topic1&quot;,containerFactory = &quot;delayContainerFactory&quot;)</code></p>
+</li>
+<li><p><code>public void onMessage1(ConsumerRecord&lt;?, ?&gt; record)&#123;</code></p>
+</li>
+<li><p><code>System.out.println(&quot;消费成功：&quot;+record.topic()+&quot;-&quot;+record.partition()+&quot;-&quot;+record.value());</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 定时启动监听器</code></p>
+</li>
+<li><p><code>@Scheduled(cron = &quot;0 42 11 * * ? &quot;)</code></p>
+</li>
+<li><p><code>public void startListener() &#123;</code></p>
+</li>
+<li><p><code>System.out.println(&quot;启动监听器...&quot;);</code></p>
+</li>
+<li><p><code>// &quot;timingConsumer&quot;是@KafkaListener注解后面设置的监听器ID,标识这个监听器</code></p>
+</li>
+<li><p><code>if (!registry.getListenerContainer(&quot;timingConsumer&quot;).isRunning()) &#123;</code></p>
+</li>
+<li><p><code>registry.getListenerContainer(&quot;timingConsumer&quot;).start();</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>//registry.getListenerContainer(&quot;timingConsumer&quot;).resume();</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>​</code></p>
+</li>
+<li><p><code>// 定时停止监听器</code></p>
+</li>
+<li><p><code>@Scheduled(cron = &quot;0 45 11 * * ? &quot;)</code></p>
+</li>
+<li><p><code>public void shutDownListener() &#123;</code></p>
+</li>
+<li><p><code>System.out.println(&quot;关闭监听器...&quot;);</code></p>
+</li>
+<li><p><code>registry.getListenerContainer(&quot;timingConsumer&quot;).pause();</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+<li><p><code>&#125;</code></p>
+</li>
+</ol>
+<p>启动项目，触发生产者向topic1发送消息，可以看到consumer没有消费，因为这时监听器还没有开始工作，</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djMySE1QbzdtOFlRQzZsVTVwT21mWmNTREtobTR0cUtMVzQzVXNUOTQ2aWM1NXhUQ2VNdlVXbmpnLzY0MA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>11:42分监听器启动开始工作，消费消息，</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djN1Njg0cXJabkl2aWFWUmZIOU0waWJkUEdLaHJCdW5kV2ljaWJpYW5rbVd1U2lhUzIwWEg3aWJXMWdPSmdRLzY0MA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djN2dnhZc1lhN2lic2xnbGtaSmE1WWdaMFE1eU8yZ0c5TVhKQlJiSXB5ZUNQeUd2S0tyZXR5NFZBLzY0MA?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+<p>11：45分监听器停止工作，</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL3N6X21tYml6X3BuZy80aWNWdnd0d1ZleUZDTkpkdGhuVFZuYnJwOUxJMXd1djN6QXY5UGRkaWJ6bmczQ3U1QTNDOTVva1dpY2RaZ21tUU0waWFYVGxxeTJaM0Zjd0dsUFk3UGFTWVEvNjQw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%AC%E8%BD%BD/" class="print-no-link">#转载</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>SpringBoot集成kafka全面实战</div>
+      <div>http://example.com/2021/01/05/SpringBoot集成kafka全面实战/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Way Leung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年1月5日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/01/08/Linux%E9%9D%A2%E8%AF%95%E7%9A%845%E4%B8%AA%E7%BB%8F%E5%85%B8%E9%97%AE%E9%A2%98/" title="Linux面试的5个经典问题">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Linux面试的5个经典问题</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/01/05/%E7%A7%92%E6%87%82%20kafka%20HA%EF%BC%88%E9%AB%98%E5%8F%AF%E7%94%A8%EF%BC%89/" title="秒懂 kafka HA（高可用）">
+                        <span class="hidden-mobile">秒懂 kafka HA（高可用）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

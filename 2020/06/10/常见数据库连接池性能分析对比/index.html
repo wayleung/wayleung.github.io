@@ -1,0 +1,803 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Way Leung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="常见数据库连接池性能分析对比最新推荐文章于 2023-04-28 11:42:35 发布  Wayyyyyyyy  最新推荐文章于 2023-04-28 11:42:35 发布 背景对现有的数据库连接池做调研对比，综合性能，可靠性，稳定性，扩展性等因素选出推荐出最优的数据库连接池 。      NOTE: 本文所有测试均是MySQL库 测试结论   1：性能方面 hikariCP&gt;druid">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常见数据库连接池性能分析对比">
+<meta property="og:url" content="http://example.com/2020/06/10/%E5%B8%B8%E8%A7%81%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E5%AF%B9%E6%AF%94/index.html">
+<meta property="og:site_name" content="小梁的个人博客">
+<meta property="og:description" content="常见数据库连接池性能分析对比最新推荐文章于 2023-04-28 11:42:35 发布  Wayyyyyyyy  最新推荐文章于 2023-04-28 11:42:35 发布 背景对现有的数据库连接池做调研对比，综合性能，可靠性，稳定性，扩展性等因素选出推荐出最优的数据库连接池 。      NOTE: 本文所有测试均是MySQL库 测试结论   1：性能方面 hikariCP&gt;druid">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://csdnimg.cn/release/blogv2/dist/pc/img/reprint.png">
+<meta property="og:image" content="https://csdnimg.cn/release/blogv2/dist/pc/img/newCurrentTime2.png">
+<meta property="og:image" content="https://img-blog.csdn.net/20160106104925916">
+<meta property="og:image" content="https://img-blog.csdn.net/20160106104944246">
+<meta property="og:image" content="https://img-blog.csdn.net/20160106105001512">
+<meta property="article:published_time" content="2020-06-10T03:48:56.000Z">
+<meta property="article:modified_time" content="2024-01-07T14:15:13.475Z">
+<meta property="article:author" content="Way Leung">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://csdnimg.cn/release/blogv2/dist/pc/img/reprint.png">
+  
+  
+  
+  <title>常见数据库连接池性能分析对比 - 小梁的个人博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","app_key":"OyBjbqUomyG2Y1ArgpK2iUlc","server_url":"https://bdcpj8k5.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="小梁的个人博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>wayleung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="常见数据库连接池性能分析对比"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-06-10 11:48" pubdate>
+          2020年6月10日 中午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          11 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">常见数据库连接池性能分析对比</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="常见数据库连接池性能分析对比"><a href="#常见数据库连接池性能分析对比" class="headerlink" title="常见数据库连接池性能分析对比"></a>常见数据库连接池性能分析对比</h2><p>最新推荐文章于 2023-04-28 11:42:35 发布</p>
+<p><img src="https://csdnimg.cn/release/blogv2/dist/pc/img/reprint.png" srcset="/img/loading.gif" lazyload></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_37760377" title="Wayyyyyyyy">Wayyyyyyyy</a> <img src="https://csdnimg.cn/release/blogv2/dist/pc/img/newCurrentTime2.png" srcset="/img/loading.gif" lazyload> 最新推荐文章于 2023-04-28 11:42:35 发布</p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a><strong>背景</strong></h2><p>对现有的<a target="_blank" rel="noopener" href="http://lib.csdn.net/base/14">数据库</a>连接池做调研对比，综合性能，可靠性，稳定性，扩展性等因素选出推荐出最优的数据库连接池 。     </p>
+<p><strong>NOTE: 本文所有测试均是<a target="_blank" rel="noopener" href="http://lib.csdn.net/base/14">MySQL</a>库</strong></p>
+<h2 id="测试结论"><a href="#测试结论" class="headerlink" title="测试结论"></a><strong>测试结论</strong></h2><p>   1：性能方面 hikariCP&gt;druid&gt;tomcat-jdbc&gt;dbcp&gt;c3p0 。hikariCP的高性能得益于最大限度的避免锁竞争。</p>
+<p>   2：druid功能最为全面，sql拦截等功能，统计数据较为全面，具有良好的扩展性。</p>
+<p>   3：综合性能，扩展性等方面，可考虑使用druid或者hikariCP连接池。</p>
+<p>   4：可开启prepareStatement缓存，对性能会有大概20%的提升。</p>
+<h2 id="功能对比"><a href="#功能对比" class="headerlink" title="功能对比"></a><strong>功能对比</strong></h2><table><tbody><tr><td>功能</td><td>dbcp</td><td>druid</td><td>c3p0</td><td>tomcat-jdbc</td><td>HikariCP</td></tr><tr><td>是否支持PSCache</td><td>是</td><td>是</td><td>是</td><td>否</td><td>否</td></tr><tr><td>监控</td><td>jmx</td><td>jmx/log/http</td><td>jmx,log</td><td>jmx</td><td>jmx</td></tr><tr><td>扩展性</td><td>弱</td><td>好</td><td>弱</td><td>弱</td><td>弱</td></tr><tr><td>sql拦截及解析</td><td>无</td><td>支持</td><td>无</td><td>无</td><td>无</td></tr><tr><td>代码</td><td>简单</td><td>中等</td><td>复杂</td><td>简单</td><td>简单</td></tr><tr><td>更新时间</td><td>2015.8.6</td><td>2015.10.10</td><td>&nbsp;2015.12.09</td><td>&nbsp;</td><td>2015.12.3</td></tr><tr><td>特点</td><td>依赖于common-pool</td><td>阿里开源，功能全面</td><td>历史久远，代码逻辑复杂，且不易维护</td><td>&nbsp;</td><td>优化力度大，功能简单，起源于boneCP</td></tr><tr><td>连接池管理</td><td>LinkedBlockingDeque</td><td>数组</td><td>&nbsp;</td><td>FairBlockingQueue</td><td>threadlocal+CopyOnWriteArrayList</td></tr></tbody></table>
+
+<ul>
+<li> 由于boneCP被hikariCP替代，并且已经不再更新，boneCP没有进行调研。</li>
+<li>proxool网上有评测说在并发较高的情况下会出错，proxool便没有进行调研。</li>
+<li> druid的功能比较全面，且扩展性较好，比较方便对jdbc接口进行监控跟踪等。</li>
+<li>c3p0历史悠久，代码及其复杂，不利于维护。并且存在deadlock的潜在风险。</li>
+</ul>
+<h2 id="性能测试"><a href="#性能测试" class="headerlink" title="性能测试"></a><strong>性能测试</strong></h2><p><strong>环境配置：</strong></p>
+<table><tbody><tr><td>CPU</td><td>Intel(R) Xeon(R) CPU E5-2430 v2 @ 2.50GHz，24core</td></tr><tr><td>msyql version</td><td>5.5.46</td></tr><tr><td>tomcat-jdbc version</td><td>8.0.28</td></tr><tr><td>HikariCP version</td><td>2.4.3</td></tr><tr><td>c3p0 Version</td><td>0.9.5-pre8</td></tr><tr><td>dbcpVersion</td><td>2.0.1</td></tr><tr><td>druidVersion</td><td>1.0.5</td></tr></tbody></table>
+
+<p><strong>1：获取关闭连接性能测试</strong></p>
+<p>       测试说明：</p>
+<ul>
+<li>初始连接和最小连接均为5，最大连接为20。在borrow和return均不心跳检测</li>
+<li>其中打开关闭次数为: 100w次</li>
+<li>测试用例和mysql在同一台机器上面，尽量避免io的影响</li>
+<li>使用mock和连接mysql在不同线程并发下的响应时间</li>
+</ul>
+<p>     图形：</p>
+<p><img src="https://img-blog.csdn.net/20160106104925916" srcset="/img/loading.gif" lazyload></p>
+<p> <img src="https://img-blog.csdn.net/20160106104944246" srcset="/img/loading.gif" lazyload></p>
+<p>   mock性能数据 (单位:ms)</p>
+<table><tbody><tr><td>&nbsp;</td><td>5</td><td>20</td><td>50</td><td>100</td></tr><tr><td>tomcat-jdbc</td><td>442</td><td>447</td><td>1,013</td><td>1,264</td></tr><tr><td>c3p0</td><td>4,480</td><td>5,527</td><td>7,449</td><td>10,725</td></tr><tr><td>dbcp</td><td>676</td><td>689</td><td>867</td><td>1,292</td></tr><tr><td>hikari</td><td>38</td><td>33</td><td>38</td><td>30</td></tr><tr><td>druid</td><td>291</td><td>293</td><td>562</td><td>985</td></tr></tbody></table>
+
+<p>mysql性能数据 (单位:ms)</p>
+<table><tbody><tr><td>&nbsp;</td><td>5</td><td>20</td><td>50</td><td>100</td></tr><tr><td>tomcat-jdbc</td><td>436</td><td>453</td><td>1,033</td><td>1,291</td></tr><tr><td>c3p0</td><td>4,378</td><td>5,726</td><td>7,975</td><td>10,948</td></tr><tr><td>dbcp</td><td>671</td><td>679</td><td>897</td><td>1,380</td></tr><tr><td>hikari</td><td>96</td><td>82</td><td>87</td><td>78</td></tr><tr><td>druid</td><td>304</td><td>424</td><td>690</td><td>1,130</td></tr></tbody></table>
+
+<p>测试结果：</p>
+<ul>
+<li>mock和mysql连接性能表现差不多，主要是由于初始化的时候建立了连接后期不再建立连接，和使用mock连接逻辑一致。 </li>
+<li>性能表现：hikariCP&gt;druid&gt;tomcat-jdbc&gt;dbcp&gt;c3p0。</li>
+<li> hikariCP 的性能及其优异。hikariCP号称java平台最快的数据库连接池。</li>
+<li> hikariCP在并发较高的情况下，性能基本上没有下降。</li>
+<li> c3p0连接池的性能很差，不建议使用该数据库连接池。</li>
+</ul>
+<pre><code class="hljs"> 
+</code></pre>
+<p>   hikariCP性能分析：</p>
+<ul>
+<li>hikariCP通过优化(concurrentBag，fastStatementList )集合来提高并发的读写效率。</li>
+<li>hikariCP使用threadlocal缓存连接及大量使用CAS的机制，最大限度的避免lock。单可能带来cpu使用率的上升。</li>
+<li>从字节码的维度优化代码。 (default inline threshold for a JVM running the server Hotspot compiler is 35 bytecodes ）让方法尽量在35个字节码一下，来提升jvm的处理效率。</li>
+</ul>
+<p><strong>2：查询一条语句性能测试</strong></p>
+<p>     测试说明：</p>
+<ul>
+<li>初始连接和最小连接均为8，最大连接为8。在borrow和return均不心跳检测</li>
+<li>查询的次数为10w次，查询的语句为 1：打开连接 2：执行 ：select 1 3：关闭连接</li>
+<li>测试用例和mysql在同一台机器上面，尽量避免io的影响</li>
+</ul>
+<p>图形：</p>
+<p><img src="https://img-blog.csdn.net/20160106105001512" srcset="/img/loading.gif" lazyload></p>
+<p> 测试数据：</p>
+<table><tbody><tr><td>&nbsp;</td><td>5</td><td>8</td><td>20</td><td>50</td><td>100</td></tr><tr><td>tomcat-jdbc</td><td>2,178</td><td>1,495</td><td>1,769</td><td>1,818</td><td>1,858</td></tr><tr><td>c3p0</td><td>3,237</td><td>3,451</td><td>4,488</td><td>5,994</td><td>7,906</td></tr><tr><td>dbcp</td><td>2,816</td><td>1,935</td><td>2,097</td><td>2,243</td><td>2,280</td></tr><tr><td>hikari</td><td>2,299</td><td>1,546</td><td>1,682</td><td>1,751</td><td>1,772</td></tr><tr><td>druid</td><td>2,297</td><td>1,551</td><td>1,800</td><td>1,977</td><td>2,032</td></tr></tbody></table>
+
+<p>测试结果：</p>
+<ul>
+<li>  在并发比较少的情况下，每个连接池的响应时间差不多。是由于并发少，基本上没有资源竞争。</li>
+<li>  在并发较高的情况下，随着并发的升高，hikariCP响应时间基本上没有变动。</li>
+<li>  c3p0随着并发的提高，性能急剧下降。</li>
+</ul>
+<p><strong>3：pscache性能对比</strong></p>
+<p>   测试说明：</p>
+<ul>
+<li>通过druid进行设置pscache和不设置pscache的性能对比</li>
+<li>初始连接和最小连接均为8，最大连接为8。在borrow和return均不心跳检测。并且执行的并发数为8.</li>
+<li>查询10w次。查询流程为：1：建立连接，2：循环查询preparestatement语句 3：close连接</li>
+<li>测试用例和mysql在同一台机器上面，尽量避免io的影响</li>
+</ul>
+<p>   测试数据：</p>
+<p>  测试结果：</p>
+<ul>
+<li>开启psCache缓存,性能大概有20%幅度的提升。可考虑开启pscache.</li>
+</ul>
+<p>  测试说明：</p>
+<ul>
+<li>psCache是connection私有的，所以不存在线程竞争的问题，开启pscache不会存在竞争的性能损耗。</li>
+<li>psCache的key为prepare执行的sql和catalog等，value对应的为prepareStatement对象。开启缓存主要是减少了解析sql的开销。</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%AC%E8%BD%BD/" class="print-no-link">#转载</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>常见数据库连接池性能分析对比</div>
+      <div>http://example.com/2020/06/10/常见数据库连接池性能分析对比/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Way Leung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年6月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/06/10/epoll%E7%9A%84%E7%AE%80%E5%8D%95%E8%AE%B2%E8%A7%A3/" title="epoll的简单讲解">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">epoll的简单讲解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/06/08/Java%E5%8F%8D%E5%B0%84%E9%81%8D%E5%8E%86%E5%88%A4%E6%96%AD%E5%80%BC%E6%98%AF%E5%90%A6%E5%B1%9E%E4%BA%8E%E6%9E%9A%E4%B8%BE%E7%B1%BBEnum/" title="Java反射遍历判断值是否属于枚举类Enum">
+                        <span class="hidden-mobile">Java反射遍历判断值是否属于枚举类Enum</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

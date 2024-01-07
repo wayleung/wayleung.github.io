@@ -1,0 +1,716 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Way Leung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1.Java 反射概述JAVA反射机制是在运行状态中，对于任意一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能够调用它的任意方法和属性；这种动态获取信息以及动态调用对象方法的功能称为java语言的反射机制。 Java 反射是很多Java框架的基础和实现，所以掌握java反射对框架的理解有很大的作用 2.三种获取Class类对象的方式1.（最常用）Class.forName（Stri">
+<meta property="og:type" content="article">
+<meta property="og:title" content="通过代码简单介绍Java反射">
+<meta property="og:url" content="http://example.com/2018/09/06/%E9%80%9A%E8%BF%87%E4%BB%A3%E7%A0%81%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8DJava%E5%8F%8D%E5%B0%84/index.html">
+<meta property="og:site_name" content="小梁的个人博客">
+<meta property="og:description" content="1.Java 反射概述JAVA反射机制是在运行状态中，对于任意一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能够调用它的任意方法和属性；这种动态获取信息以及动态调用对象方法的功能称为java语言的反射机制。 Java 反射是很多Java框架的基础和实现，所以掌握java反射对框架的理解有很大的作用 2.三种获取Class类对象的方式1.（最常用）Class.forName（Stri">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-09-06T06:13:34.000Z">
+<meta property="article:modified_time" content="2024-01-07T14:12:00.147Z">
+<meta property="article:author" content="Way Leung">
+<meta property="article:tag" content="原创">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>通过代码简单介绍Java反射 - 小梁的个人博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","app_key":"OyBjbqUomyG2Y1ArgpK2iUlc","server_url":"https://bdcpj8k5.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="小梁的个人博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>wayleung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="通过代码简单介绍Java反射"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2018-09-06 14:13" pubdate>
+          2018年9月6日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          10 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">通过代码简单介绍Java反射</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h3 id="1-Java-反射概述"><a href="#1-Java-反射概述" class="headerlink" title="1.Java 反射概述"></a>1.Java 反射概述</h3><p>JAVA反射机制是在运行状态中，对于任意一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能够调用它的任意方法和属性；这种动态获取信息以及动态调用对象方法的功能称为java语言的反射机制。</p>
+<p>Java 反射是很多Java框架的基础和实现，所以掌握java反射对框架的理解有很大的作用</p>
+<h3 id="2-三种获取Class类对象的方式"><a href="#2-三种获取Class类对象的方式" class="headerlink" title="2.三种获取Class类对象的方式"></a>2.三种获取Class类对象的方式</h3><h4 id="1-（最常用）Class-forName（String-className）注意括号中的是全类名，写过jdbc的相关代码的人都熟悉这种获取方式"><a href="#1-（最常用）Class-forName（String-className）注意括号中的是全类名，写过jdbc的相关代码的人都熟悉这种获取方式" class="headerlink" title="1.（最常用）Class.forName（String  className）注意括号中的是全类名，写过jdbc的相关代码的人都熟悉这种获取方式"></a>1.（最常用）Class.forName（String  className）注意括号中的是全类名，写过jdbc的相关代码的人都熟悉这种获取方式</h4><h4 id="2-对象的-class属性"><a href="#2-对象的-class属性" class="headerlink" title="2.对象的.class属性"></a>2.对象的.class属性</h4><h4 id="3-对象的getClass（）方法"><a href="#3-对象的getClass（）方法" class="headerlink" title="3.对象的getClass（）方法"></a>3.对象的getClass（）方法</h4><p>后面两种耦合度太高 一般都是用第一种</p>
+<p>下面是代码介绍java反射的一些api用法</p>
+<p>Student bean类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.way.reflect;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Auther</span>: Way Leung wayleung13@163.com</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Date</span>: 9/5/2018 10:34</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Description</span>:</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Student</span> &#123;<br><br><br><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> id;<br><br>    <span class="hljs-keyword">public</span> String name;<br><br>    <span class="hljs-type">char</span> gender;<br><br>    <span class="hljs-keyword">protected</span> String phone;<br><br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;I am the main method!&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">Student</span><span class="hljs-params">()</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;I am the public constructor!&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-title function_">Student</span><span class="hljs-params">(<span class="hljs-type">int</span> id, String name)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;I am the private constructor!&quot;</span>);<br>        <span class="hljs-built_in">this</span>.id = id;<br>        <span class="hljs-built_in">this</span>.name = name;<br>    &#125;<br><br>    Student(<span class="hljs-type">int</span> id, String name, <span class="hljs-type">char</span> gender) &#123;<br>        System.out.println(<span class="hljs-string">&quot;I am the default constructor!&quot;</span>);<br>        <span class="hljs-built_in">this</span>.id = id;<br>        <span class="hljs-built_in">this</span>.name = name;<br>        <span class="hljs-built_in">this</span>.gender = gender;<br>    &#125;<br><br>    <span class="hljs-keyword">protected</span> <span class="hljs-title function_">Student</span><span class="hljs-params">(<span class="hljs-type">int</span> id, String name, <span class="hljs-type">char</span> gender, String phone)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;I am the protected constructor!&quot;</span>);<br>        <span class="hljs-built_in">this</span>.id = id;<br>        <span class="hljs-built_in">this</span>.name = name;<br>        <span class="hljs-built_in">this</span>.gender = gender;<br>        <span class="hljs-built_in">this</span>.phone = phone;<br>    &#125;<br><br><br>    <span class="hljs-keyword">private</span> String <span class="hljs-title function_">method1</span><span class="hljs-params">(<span class="hljs-type">int</span> id,String name)</span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;hello, id=&quot;</span>+id+<span class="hljs-string">&quot; name=&quot;</span>+name+<span class="hljs-string">&quot;, i am a private method1!&quot;</span>;<br>    &#125;<br><br>    String <span class="hljs-title function_">method2</span><span class="hljs-params">(String name)</span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;hello,  name=&quot;</span>+name+<span class="hljs-string">&quot;, i am a default method2!&quot;</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">protected</span> String <span class="hljs-title function_">method3</span><span class="hljs-params">(<span class="hljs-type">int</span> id,String name)</span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;hello, name=&quot;</span>+name+<span class="hljs-string">&quot;, i am a protected method3!&quot;</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> String <span class="hljs-title function_">method4</span><span class="hljs-params">(String name)</span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;hello,  name=&quot;</span>+name+<span class="hljs-string">&quot;, i am a private method4!&quot;</span>;<br>    &#125;<br><br><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getId</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> id;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setId</span><span class="hljs-params">(<span class="hljs-type">int</span> id)</span> &#123;<br>        <span class="hljs-built_in">this</span>.id = id;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getName</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> name;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setName</span><span class="hljs-params">(String name)</span> &#123;<br>        <span class="hljs-built_in">this</span>.name = name;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">char</span> <span class="hljs-title function_">getGender</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> gender;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setGender</span><span class="hljs-params">(<span class="hljs-type">char</span> gender)</span> &#123;<br>        <span class="hljs-built_in">this</span>.gender = gender;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getPhone</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> phone;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setPhone</span><span class="hljs-params">(String phone)</span> &#123;<br>        <span class="hljs-built_in">this</span>.phone = phone;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">toString</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Student&#123;&quot;</span> +<br>                <span class="hljs-string">&quot;id=&quot;</span> + id +<br>                <span class="hljs-string">&quot;, name=&#x27;&quot;</span> + name + <span class="hljs-string">&#x27;\&#x27;&#x27;</span> +<br>                <span class="hljs-string">&quot;, gender=&quot;</span> + gender +<br>                <span class="hljs-string">&quot;, phone=&#x27;&quot;</span> + phone + <span class="hljs-string">&#x27;\&#x27;&#x27;</span> +<br>                <span class="hljs-string">&#x27;&#125;&#x27;</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>demo类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.way.reflect;<br><br><span class="hljs-keyword">import</span> java.lang.reflect.Constructor;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.lang.reflect.InvocationTargetException;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Auther</span>: Way Leung wayleung13@163.com</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Date</span>: 9/5/2018 10:32</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@Description</span>:</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ReflectDemo</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchFieldException &#123;<br>        Class&lt;?&gt; studentClass = Class.forName(<span class="hljs-string">&quot;com.way.reflect.Student&quot;</span>);<br>        Constructor&lt;?&gt;[] declaredConstructors = studentClass.getDeclaredConstructors();<br>        <span class="hljs-keyword">for</span> (Constructor constructor:declaredConstructors) &#123;<br>            System.out.println(constructor);<br><br><br>        &#125;<br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br>        Object student;<br>        Constructor&lt;?&gt; publicConstructor = studentClass.getDeclaredConstructor();<br>        student = publicConstructor.newInstance();<br>        System.out.println(student);<br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br>        Constructor&lt;?&gt; privateConstructor = studentClass.getDeclaredConstructor(<span class="hljs-type">int</span>.class,String.class);<br>        <span class="hljs-comment">//暴力访问(忽略掉访问修饰符)</span><br>        privateConstructor.setAccessible(<span class="hljs-literal">true</span>);<br>        student = privateConstructor.newInstance(<span class="hljs-number">1</span>,<span class="hljs-string">&quot;way&quot;</span>);<br>        System.out.println(student);<br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br>        Constructor&lt;?&gt; protectedConstructor = studentClass.getDeclaredConstructor(<span class="hljs-type">int</span>.class,String.class,<span class="hljs-type">char</span>.class,String.class);<br>        <span class="hljs-comment">//暴力访问(忽略掉访问修饰符) 同一个包下可以不用</span><br>        <span class="hljs-comment">//protectedConstructor.setAccessible(true);</span><br>        student = protectedConstructor.newInstance(<span class="hljs-number">1</span>,<span class="hljs-string">&quot;way&quot;</span>,<span class="hljs-string">&#x27;M&#x27;</span>,<span class="hljs-string">&quot;123456&quot;</span>);<br>        System.out.println(student);<br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br>        Constructor&lt;?&gt; defaultConstructor = studentClass.getDeclaredConstructor(<span class="hljs-type">int</span>.class,String.class,<span class="hljs-type">char</span>.class);<br>        <span class="hljs-comment">//暴力访问(忽略掉访问修饰符) 同一个包下可以不用</span><br>        <span class="hljs-comment">//defaultConstructor.setAccessible(true);</span><br>        student = defaultConstructor.newInstance(<span class="hljs-number">1</span>,<span class="hljs-string">&quot;way&quot;</span>,<span class="hljs-string">&#x27;M&#x27;</span>);<br>        System.out.println(student);<br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br><br>        Field[] declaredFields = studentClass.getDeclaredFields();<br><br>        <span class="hljs-keyword">for</span> (Field field:declaredFields<br>             ) &#123;<br>            System.out.println(field);<br>        &#125;<br><br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br>        <span class="hljs-type">Field</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> studentClass.getDeclaredField(<span class="hljs-string">&quot;id&quot;</span>);<br><br>        <span class="hljs-comment">//暴力访问(忽略掉访问修饰符)</span><br>        id.setAccessible(<span class="hljs-literal">true</span>);<br>        <span class="hljs-comment">//对对象属性赋值</span><br>        id.set(student,<span class="hljs-number">6666</span>);<br><br>        <span class="hljs-type">Student</span> <span class="hljs-variable">stu</span> <span class="hljs-operator">=</span> (Student) student;<br>        <span class="hljs-comment">//验证</span><br>        System.out.println(stu.getId());<br><br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br><br><br>        <span class="hljs-type">Field</span> <span class="hljs-variable">name</span> <span class="hljs-operator">=</span> studentClass.getDeclaredField(<span class="hljs-string">&quot;name&quot;</span>);<br><br>        <span class="hljs-comment">//暴力访问(忽略掉访问修饰符)  同一个包下可以不用</span><br>        <span class="hljs-comment">//name.setAccessible(true);</span><br>        <span class="hljs-comment">//对对象属性赋值</span><br>        name.set(student,<span class="hljs-string">&quot;wway&quot;</span>);<br><br>        <span class="hljs-type">Student</span> <span class="hljs-variable">stu1</span> <span class="hljs-operator">=</span> (Student) student;<br>        <span class="hljs-comment">//验证</span><br>        System.out.println(stu1.getName());<br><br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br><br><br>        <span class="hljs-type">Field</span> <span class="hljs-variable">gender</span> <span class="hljs-operator">=</span> studentClass.getDeclaredField(<span class="hljs-string">&quot;gender&quot;</span>);<br><br>        <span class="hljs-comment">//暴力访问(忽略掉访问修饰符)  同一个包下可以不用</span><br>        <span class="hljs-comment">//name.setAccessible(true);</span><br>        <span class="hljs-comment">//对对象属性赋值</span><br>        gender.set(student,<span class="hljs-string">&#x27;F&#x27;</span>);<br><br>        <span class="hljs-type">Student</span> <span class="hljs-variable">stu2</span> <span class="hljs-operator">=</span> (Student) student;<br>        <span class="hljs-comment">//验证</span><br>        System.out.println(stu2.getGender());<br><br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br><br><br>        <span class="hljs-type">Field</span> <span class="hljs-variable">phone</span> <span class="hljs-operator">=</span> studentClass.getDeclaredField(<span class="hljs-string">&quot;phone&quot;</span>);<br><br>        <span class="hljs-comment">//暴力访问(忽略掉访问修饰符)  同一个包下可以不用</span><br>        <span class="hljs-comment">//name.setAccessible(true);</span><br>        <span class="hljs-comment">//对对象属性赋值</span><br>        phone.set(student,<span class="hljs-string">&quot;88888888&quot;</span>);<br><br>        <span class="hljs-type">Student</span> <span class="hljs-variable">stu3</span> <span class="hljs-operator">=</span> (Student) student;<br>        <span class="hljs-comment">//验证</span><br>        System.out.println(stu3.getPhone());<br><br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br><br>        Method[] declaredMethods = studentClass.getDeclaredMethods();<br>        <span class="hljs-keyword">for</span> (Method method:declaredMethods<br>             ) &#123;<br>            System.out.println(method);<br>        &#125;<br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br>        <span class="hljs-type">Method</span> <span class="hljs-variable">method4</span> <span class="hljs-operator">=</span> studentClass.getDeclaredMethod(<span class="hljs-string">&quot;method4&quot;</span>, String.class);<br>        method4.setAccessible(<span class="hljs-literal">true</span>);<br>        <span class="hljs-comment">//调用某对象的方法</span><br>        <span class="hljs-type">Object</span> <span class="hljs-variable">wayway</span> <span class="hljs-operator">=</span> method4.invoke(student,<span class="hljs-string">&quot;wayway&quot;</span>);<br>        System.out.println(wayway);<br><br><br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br>        <span class="hljs-type">Method</span> <span class="hljs-variable">method2</span> <span class="hljs-operator">=</span> studentClass.getDeclaredMethod(<span class="hljs-string">&quot;method2&quot;</span>, String.class);<br>        <span class="hljs-comment">//method2.setAccessible(true);</span><br>        <span class="hljs-comment">//调用某对象的方法</span><br>        <span class="hljs-type">Object</span> <span class="hljs-variable">wayway2</span> <span class="hljs-operator">=</span> method2.invoke(student,<span class="hljs-string">&quot;wayway2&quot;</span>);<br>        System.out.println(wayway2);<br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br>        <span class="hljs-type">Method</span> <span class="hljs-variable">method3</span> <span class="hljs-operator">=</span> studentClass.getDeclaredMethod(<span class="hljs-string">&quot;method3&quot;</span>,<span class="hljs-type">int</span>.class, String.class);<br>        <span class="hljs-comment">//method3.setAccessible(true);</span><br>        <span class="hljs-comment">//调用某对象的方法</span><br>        <span class="hljs-type">Object</span> <span class="hljs-variable">wayway3</span> <span class="hljs-operator">=</span> method3.invoke(student,<span class="hljs-number">333</span>,<span class="hljs-string">&quot;wayway3&quot;</span>);<br>        System.out.println(wayway3);<br><br>        System.out.println(<span class="hljs-string">&quot;***********************************&quot;</span>);<br><br>        <span class="hljs-type">Method</span> <span class="hljs-variable">method1</span> <span class="hljs-operator">=</span> studentClass.getDeclaredMethod(<span class="hljs-string">&quot;method1&quot;</span>,<span class="hljs-type">int</span>.class, String.class);<br>        method1.setAccessible(<span class="hljs-literal">true</span>);<br>        <span class="hljs-comment">//调用某对象的方法</span><br>        <span class="hljs-type">Object</span> <span class="hljs-variable">wayway1</span> <span class="hljs-operator">=</span> method1.invoke(student,<span class="hljs-number">111</span>,<span class="hljs-string">&quot;wayway&quot;</span>);<br>        System.out.println(wayway1);<br>    &#125;<br><br><br>&#125;<br></code></pre></td></tr></table></figure>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%8E%9F%E5%88%9B/" class="print-no-link">#原创</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>通过代码简单介绍Java反射</div>
+      <div>http://example.com/2018/09/06/通过代码简单介绍Java反射/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Way Leung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2018年9月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/09/10/%E5%BF%AB%E9%80%9F%E4%BA%86%E8%A7%A3MyISAM%E4%B8%8EInnoDB%E7%9A%84%E7%B4%A2%E5%BC%95%E5%B7%AE%E5%BC%82/" title="快速了解MyISAM与InnoDB的索引差异">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">快速了解MyISAM与InnoDB的索引差异</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2018/09/04/java%E6%95%B0%E7%BB%84%E5%A3%B0%E6%98%8E%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96%E5%AE%9A%E4%B9%89%E4%BB%A5%E5%8F%8A%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E5%9C%B0%E6%96%B9/" title="java数组声明与初始化定义以及要注意的地方">
+                        <span class="hidden-mobile">java数组声明与初始化定义以及要注意的地方</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

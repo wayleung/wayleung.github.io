@@ -1,0 +1,777 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Way Leung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言单例模式是 Java 设计模式中最简单的一种，只需要一个类就能实现单例模式，但是，你可不能小看单例模式，虽然从设计上来说它比较简单，但是在实现当中你会遇到非常多的坑，所以，系好安全带，上车。 单例模式的定义单例模式就是在程序运行中只实例化一次，创建一个全局唯一对象，有点像 Java 的静态变量，但是单例模式要优于静态变量，静态变量在程序启动的时候JVM就会进行加载，如果不使用，会造成大量的资源">
+<meta property="og:type" content="article">
+<meta property="og:title" content="单例模式详解以及破坏单例模式的方法">
+<meta property="og:url" content="http://example.com/2020/06/20/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3%E4%BB%A5%E5%8F%8A%E7%A0%B4%E5%9D%8F%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F%E7%9A%84%E6%96%B9%E6%B3%95/index.html">
+<meta property="og:site_name" content="小梁的个人博客">
+<meta property="og:description" content="前言单例模式是 Java 设计模式中最简单的一种，只需要一个类就能实现单例模式，但是，你可不能小看单例模式，虽然从设计上来说它比较简单，但是在实现当中你会遇到非常多的坑，所以，系好安全带，上车。 单例模式的定义单例模式就是在程序运行中只实例化一次，创建一个全局唯一对象，有点像 Java 的静态变量，但是单例模式要优于静态变量，静态变量在程序启动的时候JVM就会进行加载，如果不使用，会造成大量的资源">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-20T10:36:59.000Z">
+<meta property="article:modified_time" content="2024-01-07T14:16:00.455Z">
+<meta property="article:author" content="Way Leung">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>单例模式详解以及破坏单例模式的方法 - 小梁的个人博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","app_key":"OyBjbqUomyG2Y1ArgpK2iUlc","server_url":"https://bdcpj8k5.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="小梁的个人博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>wayleung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="单例模式详解以及破坏单例模式的方法"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-06-20 18:36" pubdate>
+          2020年6月20日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">单例模式详解以及破坏单例模式的方法</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>单例模式是 Java 设计模式中最简单的一种，只需要一个类就能实现单例模式，但是，你可不能小看单例模式，虽然从设计上来说它比较简单，但是在实现当中你会遇到非常多的坑，所以，系好安全带，上车。</p>
+<h2 id="单例模式的定义"><a href="#单例模式的定义" class="headerlink" title="单例模式的定义"></a>单例模式的定义</h2><p>单例模式就是在程序运行中只实例化一次，创建一个全局唯一对象，有点像 Java 的静态变量，但是单例模式要优于静态变量，静态变量在程序启动的时候JVM就会进行加载，如果不使用，会造成大量的资源浪费，单例模式能够实现懒加载，能够在使用实例的时候才去创建实例。开发工具类库中的很多工具类都应用了单例模式，比例线程池、缓存、日志对象等，它们都只需要创建一个对象，如果创建多份实例，可能会带来不可预知的问题，比如资源的浪费、结果处理不一致等问题。</p>
+<h3 id="单例的实现思路"><a href="#单例的实现思路" class="headerlink" title="单例的实现思路"></a>单例的实现思路</h3><ul>
+<li>静态化实例对象</li>
+<li>私有化构造方法，禁止通过构造方法创建实例</li>
+<li>提供一个公共的静态方法，用来返回唯一实例</li>
+</ul>
+<h3 id="单例的好处"><a href="#单例的好处" class="headerlink" title="单例的好处"></a>单例的好处</h3><ul>
+<li><p>只有一个对象，内存开支少、性能好</p>
+</li>
+<li><p>避免对资源的多重占用</p>
+</li>
+<li><p>在系统设置全局访问点，优化和共享资源访问</p>
+</li>
+</ul>
+<h2 id="单例模式的实现"><a href="#单例模式的实现" class="headerlink" title="单例模式的实现"></a>单例模式的实现</h2><p>单例模式的写法有饿汉模式、懒汉模式、双重检查锁模式、静态内部类单例模式、枚举类实现单例模式五种方式，其中懒汉模式、双重检查锁模式两种方式，如果你写法不当，在多线程情况下会存在不是单例或者单例出异常等问题，具体的原因，在后面的对应处会进行说明。我们从最基本的饿汉模式开始我们的单例编写之路。</p>
+<h3 id="饿汉模式"><a href="#饿汉模式" class="headerlink" title="饿汉模式"></a>饿汉模式</h3><p>饿汉模式采用一种简单粗暴的形式，在定义静态属性时，直接实例化了对象。代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs auto">//在类加载时就完成了初始化，所以类加载较慢，但获取对象的速度快<br>public class SingletonObject1 &#123;<br>    // 利用静态变量来存储唯一实例<br>    private static final SingletonObject1 instance = new SingletonObject1();<br><br>    // 私有化构造函数<br>    private SingletonObject1()&#123;<br>        // 里面可能有很多操作<br>    &#125;<br><br>    // 提供公开获取实例接口<br>    public static SingletonObject1 getInstance()&#123;<br>        return instance;<br>    &#125;<br>&#125;<br><br>复制代码<br></code></pre></td></tr></table></figure>
+
+<h3 id="饿汉模式的优缺点"><a href="#饿汉模式的优缺点" class="headerlink" title="饿汉模式的优缺点"></a>饿汉模式的优缺点</h3><p>优点</p>
+<ul>
+<li>由于使用了static关键字，保证了在引用这个变量时，关于这个变量的所以写入操作都完成，所以保证了JVM层面的线程安全</li>
+</ul>
+<p>缺点</p>
+<ul>
+<li>不能实现懒加载，造成空间浪费，如果一个类比较大，我们在初始化的时就加载了这个类，但是我们长时间没有使用这个类，这就导致了内存空间的浪费。</li>
+</ul>
+<h3 id="懒汉模式"><a href="#懒汉模式" class="headerlink" title="懒汉模式"></a>懒汉模式</h3><p>懒汉模式是一种偷懒的模式，在程序初始化时不会创建实例，只有在使用实例的时候才会创建实例，所以懒汉模式解决了饿汉模式带来的空间浪费问题，同时也引入了其他的问题，我们先来看看下面这个懒汉模式</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs auto">public class SingletonObject2 &#123;<br>    // 定义静态变量时，未初始化实例<br>    private static SingletonObject2 instance;<br><br>    // 私有化构造函数<br>    private SingletonObject2()&#123;<br><br>    &#125;<br><br>    public static SingletonObject2 getInstance()&#123;<br>        // 使用时，先判断实例是否为空，如果实例为空，则实例化对象<br>        if (instance == null)<br>            instance = new SingletonObject2();<br>        return instance;<br>    &#125;<br>&#125;<br>复制代码<br></code></pre></td></tr></table></figure>
+
+<p>上面是懒汉模式的实现方式，但是上面这段代码在多线程的情况下是不安全的，因为它不能保证是单例模式，有可能会出现多份实例的情况，出现多份实例的情况是在创建实例对象时候造成的。所以我单独把实例化的代码提出，来分析一下为什么会出现多份实例的情况。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs auto">     1   if (instance == null)<br>     2       instance = new SingletonObject2();<br>复制代码<br></code></pre></td></tr></table></figure>
+
+<p>假设有两个线程都进入到 1 这个位置，因为没有任何资源保护措施，所以两个线程可以同时判断的<code>instance</code>都为空，都将去执行 2 的实例化代码，所以就会出现多份实例的情况。</p>
+<p>通过上面的分析我们已经知道出现多份实例的原因，如果我们在创建实例的时候进行资源保护，是不是可以解决多份实例的问题？确实如此，我们给<code>getInstance()</code>方法加上<code>synchronized</code>关键字，使得<code>getInstance()</code>方法成为受保护的资源就能够解决多份实例的问题。加上<code>synchronized</code>关键字之后代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs auto">public class SingletonObject3 &#123;<br>    private static SingletonObject3 instance;<br><br>    private SingletonObject3()&#123;<br><br>    &#125;<br><br>    public synchronized static SingletonObject3 getInstance()&#123;<br>        /**<br>         * 添加class类锁，影响了性能，加锁之后将代码进行了串行化，<br>         * 我们的代码块绝大部分是读操作，在读操作的情况下，代码线程是安全的<br>         *<br>         */<br><br>        if (instance == null)<br>            instance = new SingletonObject3();<br>        return instance;<br>    &#125;<br>&#125;<br>复制代码<br></code></pre></td></tr></table></figure>
+
+<p>经过修改后，我们解决了多份实例的问题，但是因为加入了<code>synchronized</code>关键字，对代码加了锁，就引入了新的问题，加锁之后会使得程序变成串行化，只有抢到锁的线程才能去执行这段代码块，这会使得系统的性能大大下降。</p>
+<h3 id="懒汉模式的优缺点"><a href="#懒汉模式的优缺点" class="headerlink" title="懒汉模式的优缺点"></a>懒汉模式的优缺点</h3><p>优点</p>
+<ul>
+<li>实现了懒加载，节约了内存空间</li>
+</ul>
+<p>缺点</p>
+<ul>
+<li>在不加锁的情况下，线程不安全，可能出现多份实例</li>
+<li>在加锁的情况下，会是程序串行化，使系统有严重的性能问题</li>
+</ul>
+<h3 id="双重检查锁模式"><a href="#双重检查锁模式" class="headerlink" title="双重检查锁模式"></a>双重检查锁模式</h3><p>再来讨论一下懒汉模式中加锁的问题，对于<code>getInstance()</code>方法来说，绝大部分的操作都是读操作，读操作是线程安全的，所以我们没必让每个线程必须持有锁才能调用该方法，我们需要调整加锁的问题。由此也产生了一种新的实现模式：<strong>双重检查锁模式</strong>，下面是双重检查锁模式的单例实现代码块：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs auto">public class SingletonObject4 &#123;<br>    private static SingletonObject4 instance;<br><br>    private SingletonObject4()&#123;<br><br>    &#125;<br><br>    public static SingletonObject4 getInstance()&#123;<br><br>        // 第一次判断，如果这里为空，不进入抢锁阶段，直接返回实例<br>        if (instance == null)<br>            synchronized (SingletonObject4.class)&#123;<br>                // 抢到锁之后再次判断是否为空<br>                if (instance == null)&#123;<br>                    instance = new SingletonObject4();<br>                &#125;<br>            &#125;<br><br>        return instance;<br>    &#125;<br>&#125;<br>复制代码<br></code></pre></td></tr></table></figure>
+
+<p>双重检查锁模式是一种非常好的单例实现模式，解决了单例、性能、线程安全问题，上面的双重检测锁模式看上去完美无缺，其实是存在问题，在多线程的情况下，可能会出现<strong>空指针问题</strong>，出现问题的原因是JVM在实例化对象的时候会进行优化和指令重排序操作。什么是指令重排？，看下面这个例子，简单了解一下指令从排序</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs auto">    private SingletonObject4()&#123;<br>     1   int x = 10;<br>     2   int y = 30;<br>     3  Object o = new Object();<br>                <br>    &#125;<br>复制代码<br></code></pre></td></tr></table></figure>
+
+<p>上面的构造函数<code>SingletonObject4()</code>，我们编写的顺序是1、2、3，JVM 会对它进行指令重排序，所以执行顺序可能是3、1、2，也可能是2、3、1，不管是那种执行顺序，JVM 最后都会保证所以实例都完成实例化。 如果构造函数中操作比较多时，为了提升效率，JVM 会在构造函数里面的属性未全部完成实例化时，就返回对象。双重检测锁出现空指针问题的原因就是出现在这里，当某个线程获取锁进行实例化时，其他线程就直接获取实例使用，由于JVM指令重排序的原因，其他线程获取的对象也许不是一个完整的对象，所以在使用实例的时候就会出现空指针异常问题。</p>
+<p>要解决双重检查锁模式带来空指针异常的问题，只需要使用<code>volatile</code>关键字，<code>volatile</code>关键字严格遵循<code>happens-before</code>原则，即在读操作前，写操作必须全部完成。添加<code>volatile</code>关键字之后的单例模式代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs auto">    // 添加volatile关键字<br>    private static volatile SingletonObject5 instance;<br><br>    private SingletonObject5()&#123;<br><br>    &#125;<br><br>    public static SingletonObject5 getInstance()&#123;<br><br>        if (instance == null)<br>            synchronized (SingletonObject5.class)&#123;<br>                if (instance == null)&#123;<br>                    instance = new SingletonObject5();<br>                &#125;<br>            &#125;<br><br>        return instance;<br>    &#125;<br>&#125;<br>复制代码<br></code></pre></td></tr></table></figure>
+
+<p>添加<code>volatile</code>关键字之后的双重检查锁模式是一种比较好的单例实现模式，能够保证在多线程的情况下线程安全也不会有性能问题。</p>
+<h3 id="静态内部类单例模式"><a href="#静态内部类单例模式" class="headerlink" title="静态内部类单例模式"></a>静态内部类单例模式</h3><p>静态内部类单例模式也称单例持有者模式，实例由内部类创建，由于 JVM 在加载外部类的过程中, 是不会加载静态内部类的, 只有内部类的属性&#x2F;方法被调用时才会被加载, 并初始化其静态属性。静态属性由<code>static</code>修饰，保证只被实例化一次，并且严格保证实例化顺序。静态内部类单例模式代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs auto">public class SingletonObject6 &#123;<br><br><br>    private SingletonObject6()&#123;<br><br>    &#125;<br>    // 单例持有者<br>    private static class InstanceHolder&#123;<br>        private  final static SingletonObject6 instance = new SingletonObject6();<br><br>    &#125;<br>    <br>    // <br>    public static SingletonObject6 getInstance()&#123;<br>        // 调用内部类属性<br>        return InstanceHolder.instance;<br>    &#125;<br>&#125;<br>复制代码<br></code></pre></td></tr></table></figure>
+
+<p>静态内部类单例模式是一种优秀的单例模式，是开源项目中比较常用的一种单例模式。在没有加任何锁的情况下，保证了多线程下的安全，并且没有任何性能影响和空间的浪费。</p>
+<h3 id="枚举类实现单例模式"><a href="#枚举类实现单例模式" class="headerlink" title="枚举类实现单例模式"></a>枚举类实现单例模式</h3><p>枚举类实现单例模式是 effective java 作者极力推荐的单例实现模式，因为枚举类型是线程安全的，并且只会装载一次，设计者充分的利用了枚举的这个特性来实现单例模式，枚举的写法非常简单，而且枚举类型是所用单例实现中唯一一种不会被破坏的单例实现模式。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs auto">public class SingletonObject7 &#123;<br><br><br>    private SingletonObject7()&#123;<br><br>    &#125;<br><br>    /**<br>     * 枚举类型是线程安全的，并且只会装载一次<br>     */<br>    private enum Singleton&#123;<br>        INSTANCE;<br><br>        private final SingletonObject7 instance;<br><br>        Singleton()&#123;<br>            instance = new SingletonObject7();<br>        &#125;<br><br>        private SingletonObject7 getInstance()&#123;<br>            return instance;<br>        &#125;<br>    &#125;<br><br>    public static SingletonObject7 getInstance()&#123;<br><br>        return Singleton.INSTANCE.getInstance();<br>    &#125;<br>&#125;<br>复制代码<br></code></pre></td></tr></table></figure>
+
+<h2 id="破坏单例模式的方法及解决办法"><a href="#破坏单例模式的方法及解决办法" class="headerlink" title="破坏单例模式的方法及解决办法"></a>破坏单例模式的方法及解决办法</h2><p>1、除枚举方式外, 其他方法都会通过反射的方式破坏单例,反射是通过调用构造方法生成新的对象，所以如果我们想要阻止单例破坏，可以在构造方法中进行判断，若已有实例, 则阻止生成新的实例，解决办法如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs auto">private SingletonObject1()&#123;<br>    if (instance !=null)&#123;<br>        throw new RuntimeException(&quot;实例已经存在，请通过 getInstance()方法获取&quot;);<br>    &#125;<br>&#125;<br>复制代码<br></code></pre></td></tr></table></figure>
+
+<p>2、如果单例类实现了序列化接口Serializable, 就可以通过反序列化破坏单例，所以我们可以不实现序列化接口,如果非得实现序列化接口，可以重写反序列化方法readResolve(), 反序列化时直接返回相关单例对象。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs auto">public Object readResolve() throws ObjectStreamException &#123;<br>      return instance;<br>  &#125;<br></code></pre></td></tr></table></figure>
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%AC%E8%BD%BD/" class="print-no-link">#转载</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>单例模式详解以及破坏单例模式的方法</div>
+      <div>http://example.com/2020/06/20/单例模式详解以及破坏单例模式的方法/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Way Leung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年6月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/06/22/java%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E7%9A%84%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5/" title="java多线程-线程池ThreadPoolExecutor的拒绝策略">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">java多线程-线程池ThreadPoolExecutor的拒绝策略</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/06/10/epoll%E7%9A%84%E7%AE%80%E5%8D%95%E8%AE%B2%E8%A7%A3/" title="epoll的简单讲解">
+                        <span class="hidden-mobile">epoll的简单讲解</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

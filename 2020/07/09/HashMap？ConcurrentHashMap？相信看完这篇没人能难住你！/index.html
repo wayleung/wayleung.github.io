@@ -1,0 +1,1000 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Way Leung">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言Map 这样的 Key Value 在软件开发中是非常经典的结构，常用于在内存中存放数据。 本篇主要想讨论 ConcurrentHashMap 这样一个并发容器，在正式开始之前我觉得有必要谈谈 HashMap，没有它就不会有后面的 ConcurrentHashMap。 HashMap众所周知 HashMap 底层是基于 数组 + 链表 组成的，不过在 jdk1.7 和 1.8 中具体实现稍有不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HashMap？ConcurrentHashMap？相信看完这篇没人能难住你！">
+<meta property="og:url" content="http://example.com/2020/07/09/HashMap%EF%BC%9FConcurrentHashMap%EF%BC%9F%E7%9B%B8%E4%BF%A1%E7%9C%8B%E5%AE%8C%E8%BF%99%E7%AF%87%E6%B2%A1%E4%BA%BA%E8%83%BD%E9%9A%BE%E4%BD%8F%E4%BD%A0%EF%BC%81/index.html">
+<meta property="og:site_name" content="小梁的个人博客">
+<meta property="og:description" content="前言Map 这样的 Key Value 在软件开发中是非常经典的结构，常用于在内存中存放数据。 本篇主要想讨论 ConcurrentHashMap 这样一个并发容器，在正式开始之前我觉得有必要谈谈 HashMap，没有它就不会有后面的 ConcurrentHashMap。 HashMap众所周知 HashMap 底层是基于 数组 + 链表 组成的，不过在 jdk1.7 和 1.8 中具体实现稍有不">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJtWVl0ZjBYREJNalFUNTVaV1I2Z0tuZVZjdThEVGJFdTlOcGZzMEVGMkhCWjc3UWliSEtsd1lBLzY0MD93eF9mbXQ9anBlZw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJDWUphUlJjNjhOcHQ4M0lOZjZ4VEJkRGt4UTVxT2VrUUtYMGZEb2ZxMjJoa21wZjBaMXpNNEEvNjQwP3d4X2ZtdD1wbmc?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJIY21LR2ViU21KTnJNUG96NUlzd1N1b2RySEVHeGU3c2dhYWVlVDhxMktFOE1BT1A4bmljcm5BLzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJjODF0ZkFzRGIwRmRqekhrQlJ1NGpYUmdMY28wYURQWFFYT3FUaWFtRkw5ZU90QzBnNVJ1d1l3LzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJQcXVnVXJYb3pkdFpmOGRzTkFtZE1FcEV1dmxzaWIweW5xdWhGWDI3MURvd2R6T3kwRnNpYWlhaWJnLzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJwV20xQmFoTVNXcGYzaDJzM005aWMyMjRqMURUdktZU0tGVDFUaDZqRHJpYlpiZW9mb1ZMYUg3Zy82NDA_d3hfZm10PXBuZw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJwV20xQmFoTVNXcGYzaDJzM005aWMyMjRqMURUdktZU0tGVDFUaDZqRHJpYlpiZW9mb1ZMYUg3Zy82NDA_d3hfZm10PXBuZw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJtblRTemliUTZWRUJYVWhpY0JXSEZhZTQ3U2hrTnpDUkI3U1ppYnVVTjZnRG1Ha2ZlQjVzYUFNUVEvNjQwP3d4X2ZtdD1wbmc?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJnZXVGdktTdXlpYUljeVFuSWxqRlpJYzFTUmVWSnhJOFdrTk16cHNSakJlT01RVFNCNDYxaWNwQS82NDA_d3hfZm10PXBuZw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXI5WmxrOENadDlCcTJHVUZhNGZSN2RJTkFjaWF6WGN0eHdNTFpQMjNLRW5Fc1hpYlVVQmplaDJydy82NDA_d3hfZm10PXBuZw?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJzdGZBWDZNVXlPVGNaWGhHcUlLZkhuQnloelVOaWNLM2ljb1dmRnZ0aWFPbzY1aWFkTG1tVjl6aFVnLzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXI2aEFqWGpVQlViZW5COUZROUJLWEdRYVEwTTY0UTdIUDlmVFlTS0JXa3JyWmZtc2liZEVjS0RnLzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJBbWljRGxRN1NDN1J4a0JpYmRpYlRneW1OZEFiMVM5ZVptcXJjMERGR0VPVm5QbmoyOGJwa1hBaWN3LzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJHUnYzUEVMaWFNNHI2VUdMVUNib2RzR3ZMUFNyVWM2UG1xRGNqNjRKekxqYWtlSDQzcHNjelhnLzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXIzdmZoc3NmYUhqRmVXUlZDYU91c2s4amhyaE1HNUZRdzNyaWJ0eGFJam1aRTIxNnZoMm5pYkNody82NDA_d3hfZm10PXBuZw?x-oss-process=image/format,png">
+<meta property="article:published_time" content="2020-07-09T05:58:04.000Z">
+<meta property="article:modified_time" content="2024-01-07T14:15:26.928Z">
+<meta property="article:author" content="Way Leung">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJtWVl0ZjBYREJNalFUNTVaV1I2Z0tuZVZjdThEVGJFdTlOcGZzMEVGMkhCWjc3UWliSEtsd1lBLzY0MD93eF9mbXQ9anBlZw?x-oss-process=image/format,png">
+  
+  
+  
+  <title>HashMap？ConcurrentHashMap？相信看完这篇没人能难住你！ - 小梁的个人博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","app_key":"OyBjbqUomyG2Y1ArgpK2iUlc","server_url":"https://bdcpj8k5.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="小梁的个人博客" type="application/atom+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>wayleung</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="HashMap？ConcurrentHashMap？相信看完这篇没人能难住你！"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-07-09 13:58" pubdate>
+          2020年7月9日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          33 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">HashMap？ConcurrentHashMap？相信看完这篇没人能难住你！</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Map 这样的 <code>Key Value</code> 在软件开发中是非常经典的结构，常用于在内存中存放数据。</p>
+<p>本篇主要想讨论 ConcurrentHashMap 这样一个并发容器，在正式开始之前我觉得有必要谈谈 HashMap，没有它就不会有后面的 ConcurrentHashMap。</p>
+<h3 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h3><p>众所周知 HashMap 底层是基于 <code>数组 + 链表</code> 组成的，不过在 jdk1.7 和 1.8 中具体实现稍有不同。</p>
+<h4 id="Base-1-7"><a href="#Base-1-7" class="headerlink" title="Base 1.7"></a>Base 1.7</h4><p>1.7 中的数据结构图：</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2pwZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJtWVl0ZjBYREJNalFUNTVaV1I2Z0tuZVZjdThEVGJFdTlOcGZzMEVGMkhCWjc3UWliSEtsd1lBLzY0MD93eF9mbXQ9anBlZw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=jpeg"></p>
+<p>先来看看 1.7 中的实现。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJDWUphUlJjNjhOcHQ4M0lOZjZ4VEJkRGt4UTVxT2VrUUtYMGZEb2ZxMjJoa21wZjBaMXpNNEEvNjQwP3d4X2ZtdD1wbmc?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<p>这是 HashMap 中比较核心的几个成员变量；看看分别是什么意思？</p>
+<ol>
+<li><p>初始化桶大小，因为底层是数组，所以这是数组默认的大小。</p>
+</li>
+<li><p>桶最大值。</p>
+</li>
+<li><p>默认的负载因子（0.75）</p>
+</li>
+<li><p><code>table</code> 真正存放数据的数组。</p>
+</li>
+<li><p><code>Map</code> 存放数量的大小。</p>
+</li>
+<li><p>桶大小，可在初始化时显式指定。</p>
+</li>
+<li><p>负载因子，可在初始化时显式指定。</p>
+</li>
+</ol>
+<p>重点解释下负载因子：</p>
+<p>由于给定的 HashMap 的容量大小是固定的，比如默认初始化：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1    public HashMap() &#123;<br> 2        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);<br> 3    &#125;<br> 4<br> 5    public HashMap(int initialCapacity, float loadFactor) &#123;<br> 6        if (initialCapacity &lt; 0)<br> 7            throw new IllegalArgumentException(&quot;Illegal initial capacity: &quot; +<br> 8                                               initialCapacity);<br> 9        if (initialCapacity &gt; MAXIMUM_CAPACITY)<br>10            initialCapacity = MAXIMUM_CAPACITY;<br>11        if (loadFactor &lt;= 0 || Float.isNaN(loadFactor))<br>12            throw new IllegalArgumentException(&quot;Illegal load factor: &quot; +<br>13                                               loadFactor);<br>14<br>15        this.loadFactor = loadFactor;<br>16        threshold = initialCapacity;<br>17        init();<br>18    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>给定的默认容量为 16，负载因子为 0.75。Map 在使用过程中不断的往里面存放数据，当数量达到了 <code>16 * 0.75 = 12</code> 就需要将当前 16 的容量进行扩容，而扩容这个过程涉及到 rehash、复制数据等操作，所以非常消耗性能。</p>
+<p>因此通常建议能提前预估 HashMap 的大小最好，尽量的减少扩容带来的性能损耗。</p>
+<p>根据代码可以看到其实真正存放数据的是</p>
+<p><code>transient Entry&lt;K,V&gt;[] table = (Entry&lt;K,V&gt;[]) EMPTY_TABLE;</code></p>
+<p>这个数组，那么它又是如何定义的呢？</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJIY21LR2ViU21KTnJNUG96NUlzd1N1b2RySEVHeGU3c2dhYWVlVDhxMktFOE1BT1A4bmljcm5BLzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<p>Entry 是 HashMap 中的一个内部类，从他的成员变量很容易看出：</p>
+<ul>
+<li><p>key 就是写入时的键。</p>
+</li>
+<li><p>value 自然就是值。</p>
+</li>
+<li><p>开始的时候就提到 HashMap 是由数组和链表组成，所以这个 next 就是用于实现链表结构。</p>
+</li>
+<li><p>hash 存放的是当前 key 的 hashcode。</p>
+</li>
+</ul>
+<p>知晓了基本结构，那来看看其中重要的写入、获取函数：</p>
+<p>put 方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1    public V put(K key, V value) &#123;<br> 2        if (table == EMPTY_TABLE) &#123;<br> 3            inflateTable(threshold);<br> 4        &#125;<br> 5        if (key == null)<br> 6            return putForNullKey(value);<br> 7        int hash = hash(key);<br> 8        int i = indexFor(hash, table.length);<br> 9        for (Entry&lt;K,V&gt; e = table[i]; e != null; e = e.next) &#123;<br>10            Object k;<br>11            if (e.hash == hash &amp;&amp; ((k = e.key) == key || key.equals(k))) &#123;<br>12                V oldValue = e.value;<br>13                e.value = value;<br>14                e.recordAccess(this);<br>15                return oldValue;<br>16            &#125;<br>17        &#125;<br>18<br>19        modCount++;<br>20        addEntry(hash, key, value, i);<br>21        return null;<br>22    &#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><p>判断当前数组是否需要初始化。</p>
+</li>
+<li><p>如果 key 为空，则 put 一个空值进去。</p>
+</li>
+<li><p>根据 key 计算出 hashcode。</p>
+</li>
+<li><p>根据计算出的 hashcode 定位出所在桶。</p>
+</li>
+<li><p>如果桶是一个链表则需要遍历判断里面的 hashcode、key 是否和传入 key 相等，如果相等则进行覆盖，并返回原来的值。</p>
+</li>
+<li><p>如果桶是空的，说明当前位置没有数据存入；新增一个 Entry 对象写入当前位置。</p>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1    void addEntry(int hash, K key, V value, int bucketIndex) &#123;<br> 2        if ((size &gt;= threshold) &amp;&amp; (null != table[bucketIndex])) &#123;<br> 3            resize(2 * table.length);<br> 4            hash = (null != key) ? hash(key) : 0;<br> 5            bucketIndex = indexFor(hash, table.length);<br> 6        &#125;<br> 7<br> 8        createEntry(hash, key, value, bucketIndex);<br> 9    &#125;<br>10<br>11    void createEntry(int hash, K key, V value, int bucketIndex) &#123;<br>12        Entry&lt;K,V&gt; e = table[bucketIndex];<br>13        table[bucketIndex] = new Entry&lt;&gt;(hash, key, value, e);<br>14        size++;<br>15    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>当调用 addEntry 写入 Entry 时需要判断是否需要扩容。</p>
+<p>如果需要就进行两倍扩充，并将当前的 key 重新 hash 并定位。</p>
+<p>而在 <code>createEntry</code> 中会将当前位置的桶传入到新建的桶中，如果当前桶有值就会在位置形成链表。</p>
+<p>get 方法</p>
+<p>再来看看 get 函数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1    public V get(Object key) &#123;<br> 2        if (key == null)<br> 3            return getForNullKey();<br> 4        Entry&lt;K,V&gt; entry = getEntry(key);<br> 5<br> 6        return null == entry ? null : entry.getValue();<br> 7    &#125;<br> 8<br> 9    final Entry&lt;K,V&gt; getEntry(Object key) &#123;<br>10        if (size == 0) &#123;<br>11            return null;<br>12        &#125;<br>13<br>14        int hash = (key == null) ? 0 : hash(key);<br>15        for (Entry&lt;K,V&gt; e = table[indexFor(hash, table.length)];<br>16             e != null;<br>17             e = e.next) &#123;<br>18            Object k;<br>19            if (e.hash == hash &amp;&amp;<br>20                ((k = e.key) == key || (key != null &amp;&amp; key.equals(k))))<br>21                return e;<br>22        &#125;<br>23        return null;<br>24    &#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><p>首先也是根据 key 计算出 hashcode，然后定位到具体的桶中。</p>
+</li>
+<li><p>判断该位置是否为链表。</p>
+</li>
+<li><p>不是链表就根据 <code>key、key 的 hashcode</code> 是否相等来返回值。</p>
+</li>
+<li><p>为链表则需要遍历直到 key 及 hashcode 相等时候就返回值。</p>
+</li>
+<li><p>啥都没取到就直接返回 null 。</p>
+</li>
+</ul>
+<h4 id="Base-1-8"><a href="#Base-1-8" class="headerlink" title="Base 1.8"></a>Base 1.8</h4><p>不知道 1.7 的实现大家看出需要优化的点没有？</p>
+<p>其实一个很明显的地方就是：</p>
+<blockquote>
+<p>当 Hash 冲突严重时，在桶上形成的链表会变的越来越长，这样在查询时的效率就会越来越低；时间复杂度为 <code>O(N)</code>。</p>
+</blockquote>
+<p>因此 1.8 中重点优化了这个查询效率。</p>
+<p>1.8 HashMap 结构图：</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJjODF0ZkFzRGIwRmRqekhrQlJ1NGpYUmdMY28wYURQWFFYT3FUaWFtRkw5ZU90QzBnNVJ1d1l3LzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<p>先来看看几个核心的成员变量：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1    static final int DEFAULT_INITIAL_CAPACITY = 1 &lt;&lt; 4; // aka 16<br> 2<br> 3    /**<br> 4     * The maximum capacity, used if a higher value is implicitly specified<br> 5     * by either of the constructors with arguments.<br> 6     * MUST be a power of two &lt;= 1&lt;&lt;30.<br> 7     */<br> 8    static final int MAXIMUM_CAPACITY = 1 &lt;&lt; 30;<br> 9<br>10    /**<br>11     * The load factor used when none specified in constructor.<br>12     */<br>13    static final float DEFAULT_LOAD_FACTOR = 0.75f;<br>14<br>15    static final int TREEIFY_THRESHOLD = 8;<br>16<br>17    transient Node&lt;K,V&gt;[] table;<br>18<br>19    /**<br>20     * Holds cached entrySet(). Note that AbstractMap fields are used<br>21     * for keySet() and values().<br>22     */<br>23    transient Set&lt;Map.Entry&lt;K,V&gt;&gt; entrySet;<br>24<br>25    /**<br>26     * The number of key-value mappings contained in this map.<br>27     */<br>28    transient int size;<br></code></pre></td></tr></table></figure>
+
+<p>和 1.7 大体上都差不多，还是有几个重要的区别：</p>
+<ul>
+<li><p><code>TREEIFY_THRESHOLD</code> 用于判断是否需要将链表转换为红黑树的阈值。</p>
+</li>
+<li><p>HashEntry 修改为 Node。</p>
+</li>
+</ul>
+<p>Node 的核心组成其实也是和 1.7 中的 HashEntry 一样，存放的都是 <code>key value hashcode next</code> 等数据。</p>
+<p>再来看看核心方法。</p>
+<p>put 方法</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJQcXVnVXJYb3pkdFpmOGRzTkFtZE1FcEV1dmxzaWIweW5xdWhGWDI3MURvd2R6T3kwRnNpYWlhaWJnLzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<p>看似要比 1.7 的复杂，我们一步步拆解：</p>
+<ol>
+<li><p>判断当前桶是否为空，空的就需要初始化（resize 中会判断是否进行初始化）。</p>
+</li>
+<li><p>根据当前 key 的 hashcode 定位到具体的桶中并判断是否为空，为空表明没有 Hash 冲突就直接在当前位置创建一个新桶即可。</p>
+</li>
+<li><p>如果当前桶有值（ Hash 冲突），那么就要比较当前桶中的 <code>key、key 的 hashcode</code> 与写入的 key 是否相等，相等就赋值给 <code>e</code>,在第 8 步的时候会统一进行赋值及返回。</p>
+</li>
+<li><p>如果当前桶为红黑树，那就要按照红黑树的方式写入数据。</p>
+</li>
+<li><p>如果是个链表，就需要将当前的 key、value 封装成一个新节点写入到当前桶的后面（形成链表）。</p>
+</li>
+<li><p>接着判断当前链表的大小是否大于预设的阈值，大于时就要转换为红黑树。</p>
+</li>
+<li><p>如果在遍历过程中找到 key 相同时直接退出遍历。</p>
+</li>
+<li><p>如果 <code>e != null</code> 就相当于存在相同的 key,那就需要将值覆盖。</p>
+</li>
+<li><p>最后判断是否需要进行扩容。</p>
+</li>
+</ol>
+<p>get 方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1    public V get(Object key) &#123;<br> 2        Node&lt;K,V&gt; e;<br> 3        return (e = getNode(hash(key), key)) == null ? null : e.value;<br> 4    &#125;<br> 5<br> 6    final Node&lt;K,V&gt; getNode(int hash, Object key) &#123;<br> 7        Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; first, e; int n; K k;<br> 8        if ((tab = table) != null &amp;&amp; (n = tab.length) &gt; 0 &amp;&amp;<br> 9            (first = tab[(n - 1) &amp; hash]) != null) &#123;<br>10            if (first.hash == hash &amp;&amp; // always check first node<br>11                ((k = first.key) == key || (key != null &amp;&amp; key.equals(k))))<br>12                return first;<br>13            if ((e = first.next) != null) &#123;<br>14                if (first instanceof TreeNode)<br>15                    return ((TreeNode&lt;K,V&gt;)first).getTreeNode(hash, key);<br>16                do &#123;<br>17                    if (e.hash == hash &amp;&amp;<br>18                        ((k = e.key) == key || (key != null &amp;&amp; key.equals(k))))<br>19                        return e;<br>20                &#125; while ((e = e.next) != null);<br>21            &#125;<br>22        &#125;<br>23        return null;<br>24    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>get 方法看起来就要简单许多了。</p>
+<ul>
+<li><p>首先将 key hash 之后取得所定位的桶。</p>
+</li>
+<li><p>如果桶为空则直接返回 null 。</p>
+</li>
+<li><p>否则判断桶的第一个位置(有可能是链表、红黑树)的 key 是否为查询的 key，是就直接返回 value。</p>
+</li>
+<li><p>如果第一个不匹配，则判断它的下一个是红黑树还是链表。</p>
+</li>
+<li><p>红黑树就按照树的查找方式返回值。</p>
+</li>
+<li><p>不然就按照链表的方式遍历匹配返回值。</p>
+</li>
+</ul>
+<p>从这两个核心方法（get&#x2F;put）可以看出 1.8 中对大链表做了优化，修改为红黑树之后查询效率直接提高到了 <code>O(logn)</code>。</p>
+<p>但是 HashMap 原有的问题也都存在，比如在并发场景下使用时容易出现死循环。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs auto">1final HashMap&lt;String, String&gt; map = new HashMap&lt;String, String&gt;();<br>2for (int i = 0; i &lt; 1000; i++) &#123;<br>3    new Thread(new Runnable() &#123;<br>4        @Override<br>5        public void run() &#123;<br>6            map.put(UUID.randomUUID().toString(), &quot;&quot;);<br>7        &#125;<br>8    &#125;).start();<br>9&#125;<br></code></pre></td></tr></table></figure>
+
+<p>但是为什么呢？简单分析下。</p>
+<p>看过上文的还记得在 HashMap 扩容的时候会调用 <code>resize()</code> 方法，就是这里的并发操作容易在一个桶上形成环形链表；这样当获取一个不存在的 key 时，计算出的 index 正好是环形链表的下标就会出现死循环。</p>
+<p>如下图：</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJwV20xQmFoTVNXcGYzaDJzM005aWMyMjRqMURUdktZU0tGVDFUaDZqRHJpYlpiZW9mb1ZMYUg3Zy82NDA_d3hfZm10PXBuZw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJwV20xQmFoTVNXcGYzaDJzM005aWMyMjRqMURUdktZU0tGVDFUaDZqRHJpYlpiZW9mb1ZMYUg3Zy82NDA_d3hfZm10PXBuZw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<h4 id="遍历方式"><a href="#遍历方式" class="headerlink" title="遍历方式"></a>遍历方式</h4><p>还有一个值得注意的是 HashMap 的遍历方式，通常有以下几种：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1Iterator&lt;Map.Entry&lt;String, Integer&gt;&gt; entryIterator = map.entrySet().iterator();<br> 2        while (entryIterator.hasNext()) &#123;<br> 3            Map.Entry&lt;String, Integer&gt; next = entryIterator.next();<br> 4            System.out.println(&quot;key=&quot; + next.getKey() + &quot; value=&quot; + next.getValue());<br> 5        &#125;<br> 6<br> 7Iterator&lt;String&gt; iterator = map.keySet().iterator();<br> 8        while (iterator.hasNext())&#123;<br> 9            String key = iterator.next();<br>10            System.out.println(&quot;key=&quot; + key + &quot; value=&quot; + map.get(key));<br>11<br>12        &#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>强烈建议</code>使用第一种 EntrySet 进行遍历。</p>
+<p>第一种可以把 key value 同时取出，第二种还得需要通过 key 取一次 value，效率较低。</p>
+<blockquote>
+<p>简单总结下 HashMap：无论是 1.7 还是 1.8 其实都能看出 JDK 没有对它做任何的同步操作，所以并发会出问题，甚至出现死循环导致系统不可用。</p>
+</blockquote>
+<p>因此 JDK 推出了专项专用的 ConcurrentHashMap ，该类位于 <code>java.util.concurrent</code> 包下，专门用于解决并发问题。</p>
+<blockquote>
+<p>坚持看到这里的朋友算是已经把 ConcurrentHashMap 的基础已经打牢了，下面正式开始分析。</p>
+</blockquote>
+<h3 id="ConcurrentHashMap"><a href="#ConcurrentHashMap" class="headerlink" title="ConcurrentHashMap"></a>ConcurrentHashMap</h3><p>ConcurrentHashMap 同样也分为 1.7 、1.8 版，两者在实现上略有不同。</p>
+<h4 id="Base-1-7-1"><a href="#Base-1-7-1" class="headerlink" title="Base 1.7"></a>Base 1.7</h4><p>先来看看 1.7 的实现，下面是他的结构图：</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJtblRTemliUTZWRUJYVWhpY0JXSEZhZTQ3U2hrTnpDUkI3U1ppYnVVTjZnRG1Ha2ZlQjVzYUFNUVEvNjQwP3d4X2ZtdD1wbmc?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<p>如图所示，是由 Segment 数组、HashEntry 组成，和 HashMap 一样，仍然是数组加链表。</p>
+<p>它的核心成员变量：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs auto">1    /**<br>2     * Segment 数组，存放数据时首先需要定位到具体的 Segment 中。<br>3     */<br>4    final Segment&lt;K,V&gt;[] segments;<br>5<br>6    transient Set&lt;K&gt; keySet;<br>7    transient Set&lt;Map.Entry&lt;K,V&gt;&gt; entrySet;<br></code></pre></td></tr></table></figure>
+
+<p>Segment 是 ConcurrentHashMap 的一个内部类，主要的组成如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1    static final class Segment&lt;K,V&gt; extends ReentrantLock implements Serializable &#123;<br> 2<br> 3        private static final long serialVersionUID = 2249069246763182397L;<br> 4<br> 5        // 和 HashMap 中的 HashEntry 作用一样，真正存放数据的桶<br> 6        transient volatile HashEntry&lt;K,V&gt;[] table;<br> 7<br> 8        transient int count;<br> 9<br>10        transient int modCount;<br>11<br>12        transient int threshold;<br>13<br>14        final float loadFactor;<br>15<br>16    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>看看其中 HashEntry 的组成：</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJnZXVGdktTdXlpYUljeVFuSWxqRlpJYzFTUmVWSnhJOFdrTk16cHNSakJlT01RVFNCNDYxaWNwQS82NDA_d3hfZm10PXBuZw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<p>和 HashMap 非常类似，唯一的区别就是其中的核心数据如 value ，以及链表都是 volatile 修饰的，保证了获取时的可见性。</p>
+<p>原理上来说：ConcurrentHashMap 采用了分段锁技术，其中 Segment 继承于 ReentrantLock。不会像 HashTable 那样不管是 put 还是 get 操作都需要做同步处理，理论上 ConcurrentHashMap 支持 CurrencyLevel (Segment 数组数量)的线程并发。每当一个线程占用锁访问一个 Segment 时，不会影响到其他的 Segment。</p>
+<p>下面也来看看核心的 <code>put get</code> 方法。</p>
+<p>put 方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1    public V put(K key, V value) &#123;<br> 2        Segment&lt;K,V&gt; s;<br> 3        if (value == null)<br> 4            throw new NullPointerException();<br> 5        int hash = hash(key);<br> 6        int j = (hash &gt;&gt;&gt; segmentShift) &amp; segmentMask;<br> 7        if ((s = (Segment&lt;K,V&gt;)UNSAFE.getObject          // nonvolatile; recheck<br> 8             (segments, (j &lt;&lt; SSHIFT) + SBASE)) == null) //  in ensureSegment<br> 9            s = ensureSegment(j);<br>10        return s.put(key, hash, value, false);<br>11    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>首先是通过 key 定位到 Segment，之后在对应的 Segment 中进行具体的 put。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1        final V put(K key, int hash, V value, boolean onlyIfAbsent) &#123;<br> 2            HashEntry&lt;K,V&gt; node = tryLock() ? null :<br> 3                scanAndLockForPut(key, hash, value);<br> 4            V oldValue;<br> 5            try &#123;<br> 6                HashEntry&lt;K,V&gt;[] tab = table;<br> 7                int index = (tab.length - 1) &amp; hash;<br> 8                HashEntry&lt;K,V&gt; first = entryAt(tab, index);<br> 9                for (HashEntry&lt;K,V&gt; e = first;;) &#123;<br>10                    if (e != null) &#123;<br>11                        K k;<br>12                        if ((k = e.key) == key ||<br>13                            (e.hash == hash &amp;&amp; key.equals(k))) &#123;<br>14                            oldValue = e.value;<br>15                            if (!onlyIfAbsent) &#123;<br>16                                e.value = value;<br>17                                ++modCount;<br>18                            &#125;<br>19                            break;<br>20                        &#125;<br>21                        e = e.next;<br>22                    &#125;<br>23                    else &#123;<br>24                        if (node != null)<br>25                            node.setNext(first);<br>26                        else<br>27                            node = new HashEntry&lt;K,V&gt;(hash, key, value, first);<br>28                        int c = count + 1;<br>29                        if (c &gt; threshold &amp;&amp; tab.length &lt; MAXIMUM_CAPACITY)<br>30                            rehash(node);<br>31                        else<br>32                            setEntryAt(tab, index, node);<br>33                        ++modCount;<br>34                        count = c;<br>35                        oldValue = null;<br>36                        break;<br>37                    &#125;<br>38                &#125;<br>39            &#125; finally &#123;<br>40                unlock();<br>41            &#125;<br>42            return oldValue;<br>43        &#125;<br></code></pre></td></tr></table></figure>
+
+<p>虽然 HashEntry 中的 value 是用 volatile 关键词修饰的，但是并不能保证并发的原子性，所以 put 操作时仍然需要加锁处理。</p>
+<p>首先第一步的时候会尝试获取锁，如果获取失败肯定就有其他线程存在竞争，则利用 <code>scanAndLockForPut()</code> 自旋获取锁。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXI5WmxrOENadDlCcTJHVUZhNGZSN2RJTkFjaWF6WGN0eHdNTFpQMjNLRW5Fc1hpYlVVQmplaDJydy82NDA_d3hfZm10PXBuZw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<ol>
+<li><p>尝试自旋获取锁。</p>
+</li>
+<li><p>如果重试的次数达到了 <code>MAX_SCAN_RETRIES</code> 则改为阻塞锁获取，保证能获取成功。</p>
+</li>
+</ol>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJzdGZBWDZNVXlPVGNaWGhHcUlLZkhuQnloelVOaWNLM2ljb1dmRnZ0aWFPbzY1aWFkTG1tVjl6aFVnLzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<p>再结合图看看 put 的流程。</p>
+<ol>
+<li><p>将当前 Segment 中的 table 通过 key 的 hashcode 定位到 HashEntry。</p>
+</li>
+<li><p>遍历该 HashEntry，如果不为空则判断传入的 key 和当前遍历的 key 是否相等，相等则覆盖旧的 value。</p>
+</li>
+<li><p>不为空则需要新建一个 HashEntry 并加入到 Segment 中，同时会先判断是否需要扩容。</p>
+</li>
+<li><p>最后会解除在 1 中所获取当前 Segment 的锁。</p>
+</li>
+</ol>
+<p>get 方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs auto"> 1    public V get(Object key) &#123;<br> 2        Segment&lt;K,V&gt; s; // manually integrate access methods to reduce overhead<br> 3        HashEntry&lt;K,V&gt;[] tab;<br> 4        int h = hash(key);<br> 5        long u = (((h &gt;&gt;&gt; segmentShift) &amp; segmentMask) &lt;&lt; SSHIFT) + SBASE;<br> 6        if ((s = (Segment&lt;K,V&gt;)UNSAFE.getObjectVolatile(segments, u)) != null &amp;&amp;<br> 7            (tab = s.table) != null) &#123;<br> 8            for (HashEntry&lt;K,V&gt; e = (HashEntry&lt;K,V&gt;) UNSAFE.getObjectVolatile<br> 9                     (tab, ((long)(((tab.length - 1) &amp; h)) &lt;&lt; TSHIFT) + TBASE);<br>10                 e != null; e = e.next) &#123;<br>11                K k;<br>12                if ((k = e.key) == key || (e.hash == h &amp;&amp; key.equals(k)))<br>13                    return e.value;<br>14            &#125;<br>15        &#125;<br>16        return null;<br>17    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>get 逻辑比较简单：</p>
+<p>只需要将 Key 通过 Hash 之后定位到具体的 Segment ，再通过一次 Hash 定位到具体的元素上。</p>
+<p>由于 HashEntry 中的 value 属性是用 volatile 关键词修饰的，保证了内存可见性，所以每次获取时都是最新值。</p>
+<p>ConcurrentHashMap 的 get 方法是非常高效的，<strong>因为整个过程都不需要加锁</strong>。</p>
+<h4 id="Base-1-8-1"><a href="#Base-1-8-1" class="headerlink" title="Base 1.8"></a>Base 1.8</h4><p>1.7 已经解决了并发问题，并且能支持 N 个 Segment 这么多次数的并发，但依然存在 HashMap 在 1.7 版本中的问题。</p>
+<blockquote>
+<p>那就是查询遍历链表效率太低。</p>
+</blockquote>
+<p>因此 1.8 做了一些数据结构上的调整。</p>
+<p>首先来看下底层的组成结构：</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXI2aEFqWGpVQlViZW5COUZROUJLWEdRYVEwTTY0UTdIUDlmVFlTS0JXa3JyWmZtc2liZEVjS0RnLzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<p>看起来是不是和 1.8 HashMap 结构类似？</p>
+<p>其中抛弃了原有的 Segment 分段锁，而采用了 <code>CAS + synchronized</code> 来保证并发安全性。</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJBbWljRGxRN1NDN1J4a0JpYmRpYlRneW1OZEFiMVM5ZVptcXJjMERGR0VPVm5QbmoyOGJwa1hBaWN3LzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<p>也将 1.7 中存放数据的 HashEntry 改为 Node，但作用都是相同的。</p>
+<p>其中的 <code>val next</code> 都用了 volatile 修饰，保证了可见性。</p>
+<p>put 方法</p>
+<p>重点来看看 put 函数：</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXJHUnYzUEVMaWFNNHI2VUdMVUNib2RzR3ZMUFNyVWM2UG1xRGNqNjRKekxqYWtlSDQzcHNjelhnLzY0MD93eF9mbXQ9cG5n?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<ul>
+<li><p>根据 key 计算出 hashcode 。</p>
+</li>
+<li><p>判断是否需要进行初始化。</p>
+</li>
+<li><p><code>f</code> 即为当前 key 定位出的 Node，如果为空表示当前位置可以写入数据，利用 CAS 尝试写入，失败则自旋保证成功。</p>
+</li>
+<li><p>如果当前位置的 <code>hashcode == MOVED == -1</code>,则需要进行扩容。</p>
+</li>
+<li><p>如果都不满足，则利用 synchronized 锁写入数据。</p>
+</li>
+<li><p>如果数量大于 <code>TREEIFY_THRESHOLD</code> 则要转换为红黑树。</p>
+</li>
+</ul>
+<p>get 方法</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9RQ3U4NDlZVGFJUGYxc0RDTjV6Y0RkR3NpYlp3eXp5OXIzdmZoc3NmYUhqRmVXUlZDYU91c2s4amhyaE1HNUZRdzNyaWJ0eGFJam1aRTIxNnZoMm5pYkNody82NDA_d3hfZm10PXBuZw?x-oss-process=image/format,png" srcset="/img/loading.gif" lazyload alt="640?wx_fmt=png"></p>
+<ul>
+<li><p>根据计算出来的 hashcode 寻址，如果就在桶上那么直接返回值。</p>
+</li>
+<li><p>如果是红黑树那就按照树的方式获取值。</p>
+</li>
+<li><p>就不满足那就按照链表的方式遍历获取值。</p>
+</li>
+</ul>
+<blockquote>
+<p>1.8 在 1.7 的数据结构上做了大的改动，采用红黑树之后可以保证查询效率（<code>O(logn)</code>），甚至取消了 ReentrantLock 改为了 synchronized，这样可以看出在新版的 JDK 中对 synchronized 优化是很到位的。</p>
+</blockquote>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>看完了整个 HashMap 和 ConcurrentHashMap 在 1.7 和 1.8 中不同的实现方式相信大家对他们的理解应该会更加到位。</p>
+<p>其实这块也是面试的重点内容，通常的套路是：</p>
+<ol>
+<li><p>谈谈你理解的 HashMap，讲讲其中的 get put 过程。</p>
+</li>
+<li><p>1.8 做了什么优化？</p>
+</li>
+<li><p>是线程安全的嘛？</p>
+</li>
+<li><p>不安全会导致哪些问题？</p>
+</li>
+<li><p>如何解决？有没有线程安全的并发容器？</p>
+</li>
+<li><p>ConcurrentHashMap 是如何实现的？ 1.7、1.8 实现有何不同？为什么这么做？</p>
+</li>
+</ol>
+<p>这一串问题相信大家仔细看完都能怼回面试官。</p>
+<p>除了面试会问到之外平时的应用其实也蛮多，像之前谈到的 Guava 中 Cache 的实现就是利用 ConcurrentHashMap 的思想。</p>
+<p>同时也能学习 JDK 作者大牛们的优化思路以及并发解决方案。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%80%E6%9C%89%E6%96%87%E7%AB%A0/" class="category-chain-item">所有文章</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%AC%E8%BD%BD/" class="print-no-link">#转载</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>HashMap？ConcurrentHashMap？相信看完这篇没人能难住你！</div>
+      <div>http://example.com/2020/07/09/HashMap？ConcurrentHashMap？相信看完这篇没人能难住你！/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Way Leung</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年7月9日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/07/09/CountDownLatch%E6%80%8E%E4%B9%88%E4%BD%BF%E7%94%A8%EF%BC%9F%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84Demo%E4%B8%8E%E4%BD%BF%E7%94%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" title="CountDownLatch怎么使用？一个简单的Demo与使用注意事项">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">CountDownLatch怎么使用？一个简单的Demo与使用注意事项</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/06/22/java%E5%A4%9A%E7%BA%BF%E7%A8%8B-%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E7%9A%84%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5/" title="java多线程-线程池ThreadPoolExecutor的拒绝策略">
+                        <span class="hidden-mobile">java多线程-线程池ThreadPoolExecutor的拒绝策略</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"BdCpJ8k5SK8pIjyC4pwydVSY-gzGzoHsz","appKey":"OyBjbqUomyG2Y1ArgpK2iUlc","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
